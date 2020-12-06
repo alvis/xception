@@ -1,0 +1,53 @@
+{
+  "name": "xception",
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=12.0"
+  },
+  "description": "Handle exception smart.",
+  "keywords": [
+    "callstack",
+    "cause",
+    "code",
+    "custom",
+    "data",
+    "error",
+    "exception",
+    "extendable",
+    "frame",
+    "meta",
+    "repack",
+    "source",
+    "stack",
+    "trace",
+    "wrap"
+  ],
+  "homepage": "https://github.com/alvis/xception#readme",
+  "bugs": {
+    "url": "https://github.com/alvis/xception/issues"
+  },
+  "license": "MIT",
+  "author": "Alvis HT Tang <alvis@hilbert.space>",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "run build",
+    "coverage": "run coverage",
+    "lint": "run lint",
+    "prepare": "presetter bootstrap && run prepare",
+    "prepublishOnly": "run prepublishOnly",
+    "release": "run release --",
+    "test": "run test --",
+    "watch": "run watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alvis/xception.git"
+  },
+  "devDependencies": {
+    "presetter": "1.x",
+    "presetter-preset": "1.x"
+  },
+  "dependencies": {
+  }
+}
