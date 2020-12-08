@@ -15,4 +15,5 @@
 
 /* istanbul ignore file */
 
-export {};
+export * from './prototype';
+export { Xception as default } from './prototype';
