@@ -49,6 +49,7 @@
     "presetter-preset": "1.x"
   },
   "dependencies": {
-    "chalk": "4.x"
+    "chalk": "4.x",
+    "highlight-es": "1.x"
   }
 }
