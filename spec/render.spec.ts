@@ -157,6 +157,7 @@ describe('fn:renderStack', () => {
     const rendered = renderStack(
       new Xception('message', {
         namespace: 'xception',
+        tags: ['tag1', 'tag2'],
         meta: { name: 'xception' },
       }),
     );
@@ -166,7 +167,7 @@ describe('fn:renderStack', () => {
     expect(plain).toContain(
       '[Xception] message\n' +
         '\n' +
-        '    xception\n' +
+        '    xception tag1 tag2\n' +
         '\n' +
         '    name: xception\n' +
         '\n' +

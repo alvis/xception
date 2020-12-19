@@ -26,12 +26,16 @@ export class Xception extends Error {
   /** running context */
   public meta: Record<string, unknown>;
 
+  /** additional associations */
+  public tags: string[];
+
   /**
    * @param message error message
    * @param options additional options for the error
    * @param options.cause upstream error
    * @param options.namespace namespace of the error
    * @param options.meta context where the error occur
+   * @param options.tags additional associations for the error
    */
   constructor(
     message: string,
@@ -39,9 +43,10 @@ export class Xception extends Error {
       cause?: unknown;
       namespace?: string;
       meta?: Record<string, unknown>;
+      tags?: string[];
     },
   ) {
-    const { cause, namespace, meta = {} } = { ...options };
+    const { cause, namespace, meta = {}, tags = [] } = { ...options };
 
     super(message);
     this.cause = cause;
@@ -66,5 +71,8 @@ export class Xception extends Error {
             cause.stack,
           ].join('\n')
         : this.stack;
+
+    // attach tags to the error
+    this.tags = cause instanceof Xception ? [...cause.tags, ...tags] : tags;
   }
 }

@@ -59,6 +59,10 @@ function renderAssociations(error: unknown): string | null {
     blocks.push(chalk.blue.underline(error.namespace));
   }
 
+  if (error instanceof Xception && error.tags.length) {
+    blocks.push(...error.tags.map((tag) => chalk.cyan.bold(tag)));
+  }
+
   return blocks.length ? '\n    ' + blocks.join(' ') : null;
 }
 

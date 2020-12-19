@@ -17,7 +17,7 @@ import { Xception } from '#prototype';
 
 class NewError extends Xception {
   constructor(options?: { cause?: unknown }) {
-    super('new error', { ...options });
+    super('new error', { ...options, tags: ['new'] });
   }
 }
 
@@ -29,6 +29,7 @@ function getExtendedError(): Xception {
       cause,
       namespace: 'test:xception',
       meta: { name: 'xception' },
+      tags: ['extended'],
     });
   }
 }
@@ -62,6 +63,10 @@ describe('cl:Xception', () => {
     expect(extendedError.meta).toEqual({ name: 'xception' });
   });
 
+  it('passes tags to the inherited class', () => {
+    expect(newError.tags).toEqual(['extended', 'new']);
+  });
+
   it('keeps its own stack if the attached error has no stack', () => {
     const error = new Xception('message', {
       cause: { name: 'GenericError', message: 'error' },
@@ -71,9 +76,10 @@ describe('cl:Xception', () => {
   });
 
   it('takes a normal error if no origin is attached', () => {
-    const error = new Xception('message');
+    const error = new Xception('message', { tags: ['tag'] });
 
     expect(error.stack).toContain('Xception');
+    expect(error.tags).toEqual(['tag']);
   });
 
   it('bears the right error type', () => {
