@@ -20,21 +20,27 @@ export class Xception extends Error {
   /** upstream error */
   public cause?: unknown;
 
+  /** running context */
+  public meta: Record<string, unknown>;
+
   /**
    * @param message error message
    * @param options additional options for the error
    * @param options.cause upstream error
+   * @param options.meta context where the error occur
    */
   constructor(
     message: string,
     options?: {
       cause?: unknown;
+      meta?: Record<string, unknown>;
     },
   ) {
-    const { cause } = { ...options };
+    const { cause, meta = {} } = { ...options };
 
     super(message);
     this.cause = cause;
+    this.meta = meta;
 
     // fix the name of the error class being 'Error'
     this.name = this.constructor.name;

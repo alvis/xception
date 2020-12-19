@@ -50,6 +50,7 @@
   },
   "dependencies": {
     "chalk": "4.x",
-    "highlight-es": "1.x"
+    "highlight-es": "1.x",
+    "yamlify-object": "0.5.x"
   }
 }

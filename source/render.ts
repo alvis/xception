@@ -16,7 +16,9 @@
 import chalk from 'chalk';
 import { existsSync, readFileSync } from 'fs';
 import highlight from 'highlight-es';
+import yamlify from 'yamlify-object';
 
+import { Xception } from '#prototype';
 import { disassembleStack } from './stack';
 
 import type { StackDescriptionBlock, StackLocationBlock } from './stack';
@@ -34,15 +36,32 @@ const DEFAULT_CODE_THEME = {
   invalid: chalk.inverse,
 };
 
+const DEFAULT_YAML_THEME = {
+  error: chalk.red,
+  symbol: chalk.magenta,
+  string: chalk.green,
+  date: chalk.cyan,
+  number: chalk.magenta,
+  boolean: chalk.yellow,
+  null: chalk.yellow.bold,
+  undefined: chalk.yellow.bold,
+};
+
 /**
  * render a description line
  * @param block a stack block about an error description
+ * @param error error the related error
  * @returns a rendered string to print
  */
-function renderDescription(block: StackDescriptionBlock): string {
+function renderDescription(
+  block: StackDescriptionBlock,
+  error?: unknown,
+): string {
   const { name, message } = block;
+  const description = chalk.red(`[${chalk.bold(name)}] ${message}`);
+  const meta = renderMeta(error);
 
-  return chalk.red(`[${chalk.bold(name)}] ${message}`);
+  return [description, meta].filter((block) => !!block).join('\n');
 }
 
 /**
@@ -67,6 +86,22 @@ function renderLocation(
     `    at ${chalk.grey.bold(entry)} (${chalk.grey.underline(location)})` +
     (sourceFrame ? '\n' + sourceFrame : '')
   );
+}
+
+/**
+ * render metadata in an error
+ * @param error the related error
+ * @returns a rendered string to print
+ */
+function renderMeta(error: unknown): string | null {
+  return error instanceof Xception && Object.keys(error.meta).length
+    ? yamlify(error.meta, {
+        indent: '    ',
+        prefix: '\n',
+        postfix: '\n',
+        colors: DEFAULT_YAML_THEME,
+      })
+    : null;
 }
 
 /**
@@ -129,15 +164,25 @@ export function renderStack(
 
   const blocks = disassembleStack(error.stack!);
 
-  return blocks
-    .map((block, index) =>
-      block.type === 'location'
-        ? renderLocation(block, {
-            showSource:
-              // NOTE a location block must follow a description block
-              showSource && blocks[index - 1].type === 'description',
-          })
-        : renderDescription(block),
-    )
-    .join('\n');
+  let currentError: unknown = error;
+  const renderedBlocks: string[] = [];
+
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+
+    if (block.type === 'location') {
+      renderedBlocks.push(
+        renderLocation(block, {
+          showSource:
+            // NOTE a location block must follow a description block
+            showSource && blocks[i - 1].type === 'description',
+        }),
+      );
+    } else {
+      renderedBlocks.push(renderDescription(block, currentError));
+      currentError = error['cause'];
+    }
+  }
+
+  return renderedBlocks.join('\n');
 }

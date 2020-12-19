@@ -27,6 +27,7 @@ function getExtendedError(): Xception {
   } catch (cause) {
     return new Xception('extended', {
       cause,
+      meta: { name: 'xception' },
     });
   }
 }
@@ -50,6 +51,10 @@ describe('cl:Xception', () => {
     });
 
     expect(xception.cause).toEqual(cause);
+  });
+
+  it('embeds the metadata when supplied', () => {
+    expect(extendedError.meta).toEqual({ name: 'xception' });
   });
 
   it('keeps its own stack if the attached error has no stack', () => {

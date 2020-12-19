@@ -15,6 +15,8 @@
 
 import { renderStack } from '#render';
 
+import { Xception } from '#prototype';
+
 jest.mock('fs', () => ({
   __esModule: true,
   existsSync(path: string) {
@@ -131,6 +133,23 @@ describe('fn:renderStack', () => {
         '    at entry1 (absent:1:0)\n' +
         '[Error2] message2\n' +
         '    at entry2 (absent:2:0)',
+    );
+  });
+
+  it('renders metadata', () => {
+    const rendered = renderStack(
+      new Xception('message', {
+        cause: new Xception('message', {
+          meta: { name: 'xception' },
+        }),
+      }),
+    );
+
+    const plain = rendered.replace(ansiExpression, '');
+
+    expect(plain).toContain('[Xception] message\n' + '    at');
+    expect(plain).toContain(
+      '[Xception] message\n' + '\n' + '    name: xception\n' + '\n' + '    at',
     );
   });
 });
