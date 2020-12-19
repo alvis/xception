@@ -48,6 +48,21 @@ const DEFAULT_YAML_THEME = {
 };
 
 /**
+ * render associations of an error
+ * @param error the related error
+ * @returns a rendered string to print
+ */
+function renderAssociations(error: unknown): string | null {
+  const blocks: string[] = [];
+
+  if (error instanceof Xception && error.namespace) {
+    blocks.push(chalk.blue.underline(error.namespace));
+  }
+
+  return blocks.length ? '\n    ' + blocks.join(' ') : null;
+}
+
+/**
  * render a description line
  * @param block a stack block about an error description
  * @param error error the related error
@@ -59,9 +74,10 @@ function renderDescription(
 ): string {
   const { name, message } = block;
   const description = chalk.red(`[${chalk.bold(name)}] ${message}`);
+  const association = renderAssociations(error);
   const meta = renderMeta(error);
 
-  return [description, meta].filter((block) => !!block).join('\n');
+  return [description, association, meta].filter((block) => !!block).join('\n');
 }
 
 /**

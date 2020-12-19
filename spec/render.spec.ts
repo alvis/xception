@@ -152,4 +152,25 @@ describe('fn:renderStack', () => {
       '[Xception] message\n' + '\n' + '    name: xception\n' + '\n' + '    at',
     );
   });
+
+  it('renders associations', () => {
+    const rendered = renderStack(
+      new Xception('message', {
+        namespace: 'xception',
+        meta: { name: 'xception' },
+      }),
+    );
+
+    const plain = rendered.replace(ansiExpression, '');
+
+    expect(plain).toContain(
+      '[Xception] message\n' +
+        '\n' +
+        '    xception\n' +
+        '\n' +
+        '    name: xception\n' +
+        '\n' +
+        '    at',
+    );
+  });
 });

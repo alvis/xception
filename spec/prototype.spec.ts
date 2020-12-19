@@ -27,6 +27,7 @@ function getExtendedError(): Xception {
   } catch (cause) {
     return new Xception('extended', {
       cause,
+      namespace: 'test:xception',
       meta: { name: 'xception' },
     });
   }
@@ -51,6 +52,10 @@ describe('cl:Xception', () => {
     });
 
     expect(xception.cause).toEqual(cause);
+  });
+
+  it('specifies the namespace when supplied', () => {
+    expect(extendedError.namespace).toEqual('test:xception');
   });
 
   it('embeds the metadata when supplied', () => {

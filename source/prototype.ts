@@ -20,6 +20,9 @@ export class Xception extends Error {
   /** upstream error */
   public cause?: unknown;
 
+  /** error namespace */
+  public namespace?: string;
+
   /** running context */
   public meta: Record<string, unknown>;
 
@@ -27,19 +30,22 @@ export class Xception extends Error {
    * @param message error message
    * @param options additional options for the error
    * @param options.cause upstream error
+   * @param options.namespace namespace of the error
    * @param options.meta context where the error occur
    */
   constructor(
     message: string,
     options?: {
       cause?: unknown;
+      namespace?: string;
       meta?: Record<string, unknown>;
     },
   ) {
-    const { cause, meta = {} } = { ...options };
+    const { cause, namespace, meta = {} } = { ...options };
 
     super(message);
     this.cause = cause;
+    this.namespace = namespace;
     this.meta = meta;
 
     // fix the name of the error class being 'Error'
