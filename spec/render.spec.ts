@@ -77,6 +77,53 @@ describe('fn:renderStack', () => {
     );
   });
 
+  it('renders an error stack without node:internal by default', () => {
+    const rendered = renderStack(
+      new MockedError(
+        'Error1: message1\n' +
+          '    at entry1 (src1:1:0)\n' +
+          '    at third_party (./node_modules/third_party/src:1:0)\n' +
+          '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
+          'Error2: message2\n' +
+          '    at entry2 (src2:2:0)',
+      ),
+    );
+
+    const plain = rendered.replace(ansiExpression, '');
+
+    expect(plain).toEqual(
+      '[Error1] message1\n' +
+        '    at entry1 (src1:1:0)\n' +
+        '    at third_party (./node_modules/third_party/src:1:0)\n' +
+        '[Error2] message2\n' +
+        '    at entry2 (src2:2:0)',
+    );
+  });
+
+  it('renders an error stack according to the supplued filter', () => {
+    const rendered = renderStack(
+      new MockedError(
+        'Error1: message1\n' +
+          '    at entry1 (src1:1:0)\n' +
+          '    at third_party (./node_modules/third_party/src:1:0)\n' +
+          '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
+          'Error2: message2\n' +
+          '    at entry2 (src2:2:0)',
+      ),
+      { filter: (path: string) => !path.includes('node_modules') },
+    );
+
+    const plain = rendered.replace(ansiExpression, '');
+
+    expect(plain).toEqual(
+      '[Error1] message1\n' +
+        '    at entry1 (src1:1:0)\n' +
+        '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
+        '[Error2] message2\n' +
+        '    at entry2 (src2:2:0)',
+    );
+  });
+
   it('renders an error stack with the source', () => {
     const rendered = renderStack(
       new MockedError(

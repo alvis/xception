@@ -172,15 +172,20 @@ function renderSource(
  * @param error the error to be rendered
  * @param options optional parameters
  * @param options.showSource indicate whether a source frame should be shown
+ * @param options.filter a filter determining whether a stack should be shown given the file path
  * @returns a rendered string to print
  */
 export function renderStack(
   error: Error,
   options?: {
     showSource?: boolean;
+    filter?: (path: string) => boolean;
   },
 ): string {
-  const { showSource = false } = { ...options };
+  const {
+    showSource = false,
+    filter = (path: string) => !path.includes('node:internal'),
+  } = { ...options };
 
   const blocks = disassembleStack(error.stack!);
 
@@ -190,7 +195,7 @@ export function renderStack(
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
 
-    if (block.type === 'location') {
+    if (block.type === 'location' && filter(block.path)) {
       renderedBlocks.push(
         renderLocation(block, {
           showSource:
@@ -198,7 +203,7 @@ export function renderStack(
             showSource && blocks[i - 1].type === 'description',
         }),
       );
-    } else {
+    } else if (block.type === 'description') {
       renderedBlocks.push(renderDescription(block, currentError));
       currentError = error['cause'];
     }
