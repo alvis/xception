@@ -29,7 +29,8 @@ export interface StackLocationBlock {
 
 export type StackBlock = StackDescriptionBlock | StackLocationBlock;
 
-const stackLineExpression = /(\s*at (.+) \((.+):([0-9]+):([0-9]+)\))|(^(\w+):\s*([\w\W]*?)(\s*\n\s+))/gm;
+const stackLineExpression =
+  /(\s*at (.+) \((.+):([0-9]+):([0-9]+)\))|(^(\w+):\s*([\w\W]*?)(\s*\n\s+))/gm;
 
 /**
  * parse a stack into its components

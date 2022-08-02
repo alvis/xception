@@ -195,7 +195,10 @@ export function renderStack(
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
 
-    if (block.type === 'location' && filter(block.path)) {
+    if (block.type === 'description') {
+      renderedBlocks.push(renderDescription(block, currentError));
+      currentError = error['cause'];
+    } else if (filter(block.path)) {
       renderedBlocks.push(
         renderLocation(block, {
           showSource:
@@ -203,9 +206,6 @@ export function renderStack(
             showSource && blocks[i - 1].type === 'description',
         }),
       );
-    } else if (block.type === 'description') {
-      renderedBlocks.push(renderDescription(block, currentError));
-      currentError = error['cause'];
     }
   }
 
