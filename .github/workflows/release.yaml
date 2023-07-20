@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14]
+        node-version: [18]
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -18,16 +18,16 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: cache node_modules
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ matrix.node-version }}-dependencies-${{ hashFiles('package-lock.json') }}
       - name: install dependencies
         run: npm ci
       - name: create release notes
-        run: npx gh-release@4 --yes
+        run: npx gh-release@7 --yes
         env:
-          GH_RELEASE_GITHUB_API_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          GH_RELEASE_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: login to npm
         run: npm config set //registry.npmjs.org/:_authToken $NPM_AUTH_TOKEN
         env:
