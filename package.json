@@ -27,9 +27,20 @@
     "url": "https://github.com/alvis/xception/issues"
   },
   "license": "MIT",
-  "author": "Alvis HT Tang <alvis@hilbert.space>",
+  "author": {
+    "name": "Alvis HT Tang",
+    "email": "alvis@hilbert.space"
+  },
   "main": "lib/index.js",
+  "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./lib/index.js",
+      "import": "./lib/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "build": "run build",
     "coverage": "run coverage",
@@ -45,12 +56,13 @@
     "url": "git+https://github.com/alvis/xception.git"
   },
   "devDependencies": {
-    "presetter": "1.x",
-    "presetter-preset": "1.x"
+    "presetter-preset-hybrid": "^3.3.0",
+    "presetter-preset-strict": "^3.3.0",
+    "presetter": "^3.3.0"
   },
   "dependencies": {
-    "chalk": "4.x",
-    "highlight-es": "1.x",
-    "yamlify-object": "0.5.x"
+    "chalk": "^4.0.0",
+    "highlight-es": "^1.0.0",
+    "yamlify-object": "^0.6.0"
   }
 }
