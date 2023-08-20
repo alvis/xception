@@ -13,8 +13,9 @@
  * -------------------------------------------------------------------------
  */
 
+import { existsSync, readFileSync } from 'node:fs';
+
 import chalk from 'chalk';
-import { existsSync, readFileSync } from 'fs';
 import highlight from 'highlight-es';
 import yamlify from 'yamlify-object';
 

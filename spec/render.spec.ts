@@ -13,12 +13,11 @@
  * -------------------------------------------------------------------------
  */
 
-import { renderStack } from '#render';
+import { jest } from '@jest/globals';
 
 import { Xception } from '#prototype';
 
-jest.mock('fs', () => ({
-  __esModule: true,
+jest.unstable_mockModule('node:fs', () => ({
   existsSync(path: string) {
     switch (path) {
       case 'src1':
@@ -56,6 +55,7 @@ class MockedError extends Error {
   }
 }
 
+const { renderStack } = await import('#render');
 describe('fn:renderStack', () => {
   it('renders an error stack with its own format', () => {
     const rendered = renderStack(
