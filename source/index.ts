@@ -19,3 +19,4 @@ export * from './prototype';
 export { Xception as default } from './prototype';
 
 export * from './render';
+export * from './xceptionalize';
