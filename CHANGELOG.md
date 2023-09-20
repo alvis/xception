@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [3.0.0](https://github.com/alvis/xception/compare/v2.0.0...v3.0.0) (2023-09-20)
+
+
+### 📦 Code Refactoring
+
+* rename renderStack to renderError ([f742ddb](https://github.com/alvis/xception/commit/f742ddb554beea680a0c3684c075dc5915dbb0e9))
+
+
+### 💎 Styles
+
+* move public methods to the top of files ([08d4476](https://github.com/alvis/xception/commit/08d447645ada44d226da4df0923895f21c937571))
+* reword test descriptions to the convention ([4964a4a](https://github.com/alvis/xception/commit/4964a4aff95c8aafd80d3b371685a3b215e58590))
+
+
+### Breaking changes
+
+* renderStack is now renderError
+
+
+
 # [2.0.0](https://github.com/alvis/xception/compare/v1.0.0...v2.0.0) (2023-09-20)
 
 
