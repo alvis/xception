@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [2.0.0](https://github.com/alvis/xception/compare/v1.0.0...v2.0.0) (2023-09-20)
+
+
+### ✨ Features
+
+* add a helper to transform any error to an xception error ([10dcc29](https://github.com/alvis/xception/commit/10dcc2907d9afed71838dccc347cdb1690b833c9))
+
+
+### 🛠 Builds
+
+* publish as a dual commonjs/esm package ([d3caeff](https://github.com/alvis/xception/commit/d3caeffbccb3f855398b7cfaa78997ae7023aa0f))
+
+
+### 📦 Code Refactoring
+
+* rearrange the code to reduce cognitive complexity ([6c9cad7](https://github.com/alvis/xception/commit/6c9cad73d58119e203311715813171e702ede884))
+
+
+### ⚙️ Continuous Integrations
+
+* update Github Actions workflow files ([e789d26](https://github.com/alvis/xception/commit/e789d266e1ea036bbe74d1962cea405bdf9f40b0))
+
+
+### ♻️ Chores
+
+* upgrade presetter to v4 ([18e6328](https://github.com/alvis/xception/commit/18e6328e8db3bb7bba6607bbc4201a81f51eb8d8))
+
+
+### Breaking changes
+
+* Support on node 12 & 14 are dropped
+
+
+
 # 1.0.0 (2021-01-08)
 
 
