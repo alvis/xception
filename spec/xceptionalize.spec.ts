@@ -18,7 +18,7 @@ import { Xception } from '#prototype';
 import { xceptionalize } from '#xceptionalize';
 
 describe('fn:xceptionalize', () => {
-  it('wraps an error as an Xception', () => {
+  it('should wrap an error as an Xception', () => {
     try {
       throw new Error('test');
     } catch (error) {
@@ -31,7 +31,7 @@ describe('fn:xceptionalize', () => {
     }
   });
 
-  it('ignores any xception instance', () => {
+  it('should ignore any xception instance', () => {
     const xception = new Xception('test');
     const xceptionalizedError = xceptionalize(xception);
 

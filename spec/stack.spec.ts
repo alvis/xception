@@ -67,13 +67,13 @@ const components: StackBlock[] = [
 ];
 
 describe('fn:assembleStack', () => {
-  it('reassembles a stack content ', () => {
+  it('should reassemble a stack content ', () => {
     expect(assembleStack(components)).toEqual(stack);
   });
 });
 
 describe('fn:disassembleStack', () => {
-  it('disassembles a stack content ', () => {
+  it('should disassemble a stack content ', () => {
     expect(disassembleStack(stack)).toEqual(components);
   });
 });

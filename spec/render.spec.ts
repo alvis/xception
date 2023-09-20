@@ -57,7 +57,7 @@ class MockedError extends Error {
 
 const { renderStack } = await import('#render');
 describe('fn:renderStack', () => {
-  it('renders an error stack with its own format', () => {
+  it('should render an error stack with its own format', () => {
     const rendered = renderStack(
       new MockedError(
         'Error1: message1\n' +
@@ -77,7 +77,7 @@ describe('fn:renderStack', () => {
     );
   });
 
-  it('renders an error stack without node:internal by default', () => {
+  it('should render an error stack without node:internal by default', () => {
     const rendered = renderStack(
       new MockedError(
         'Error1: message1\n' +
@@ -100,7 +100,7 @@ describe('fn:renderStack', () => {
     );
   });
 
-  it('renders an error stack according to the supplued filter', () => {
+  it('should render an error stack according to the supplued filter', () => {
     const rendered = renderStack(
       new MockedError(
         'Error1: message1\n' +
@@ -124,7 +124,7 @@ describe('fn:renderStack', () => {
     );
   });
 
-  it('renders an error stack with the source', () => {
+  it('should render an error stack with the source', () => {
     const rendered = renderStack(
       new MockedError(
         'Error1: message1\n' +
@@ -162,7 +162,7 @@ describe('fn:renderStack', () => {
     );
   });
 
-  it('renders an error stack with the source absent', () => {
+  it('should render an error stack with the source absent', () => {
     const rendered = renderStack(
       new MockedError(
         'Error1: message1\n' +
@@ -183,7 +183,7 @@ describe('fn:renderStack', () => {
     );
   });
 
-  it('renders metadata', () => {
+  it('should render metadata', () => {
     const rendered = renderStack(
       new Xception('message', {
         cause: new Xception('message', {
@@ -200,7 +200,7 @@ describe('fn:renderStack', () => {
     );
   });
 
-  it('renders associations', () => {
+  it('should render associations', () => {
     const rendered = renderStack(
       new Xception('message', {
         namespace: 'xception',

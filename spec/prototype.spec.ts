@@ -46,7 +46,7 @@ describe('cl:Xception', () => {
   const extendedError = getExtendedError();
   const newError = getNewError();
 
-  it('embeds the wrapped error', () => {
+  it('should embed the wrapped error', () => {
     const cause = new Error('message');
     const xception = new Xception('extended', {
       cause,
@@ -55,19 +55,19 @@ describe('cl:Xception', () => {
     expect(xception.cause).toEqual(cause);
   });
 
-  it('specifies the namespace when supplied', () => {
+  it('should specify the namespace when supplied', () => {
     expect(extendedError.namespace).toEqual('test:xception');
   });
 
-  it('embeds the metadata when supplied', () => {
+  it('should embed the metadata when supplied', () => {
     expect(extendedError.meta).toEqual({ name: 'xception' });
   });
 
-  it('passes tags to the inherited class', () => {
+  it('should pass tags to the inherited class', () => {
     expect(newError.tags).toEqual(['extended', 'new']);
   });
 
-  it('keeps its own stack if the attached error has no stack', () => {
+  it('should keep its own stack if the attached error has no stack', () => {
     const error = new Xception('message', {
       cause: { name: 'GenericError', message: 'error' },
     });
@@ -75,19 +75,19 @@ describe('cl:Xception', () => {
     expect(error.stack).not.toContain('GenericError');
   });
 
-  it('takes a normal error if no origin is attached', () => {
+  it('should take a normal error if no origin is attached', () => {
     const error = new Xception('message', { tags: ['tag'] });
 
     expect(error.stack).toContain('Xception');
     expect(error.tags).toEqual(['tag']);
   });
 
-  it('bears the right error type', () => {
+  it('should bear the right error type', () => {
     expect(extendedError.name).toEqual('Xception');
     expect(newError.name).toEqual('NewError');
   });
 
-  it('contains previous stacks', () => {
+  it('should contain previous stacks', () => {
     expect(newError.stack).toContain('NewError: new error');
     expect(newError.stack).toContain('Xception: extended');
     expect(newError.stack).toContain('Error: message');
