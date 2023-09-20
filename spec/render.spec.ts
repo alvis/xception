@@ -55,8 +55,8 @@ class MockedError extends Error {
   }
 }
 
-const { renderStack } = await import('#render');
-describe('fn:renderStack', () => {
+const { renderError: renderStack } = await import('#render');
+describe('fn:renderError', () => {
   it('should render an error stack with its own format', () => {
     const rendered = renderStack(
       new MockedError(

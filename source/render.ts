@@ -24,6 +24,14 @@ import { disassembleStack } from './stack';
 
 import type { StackDescriptionBlock, StackLocationBlock } from './stack';
 
+/** options for rendering an error */
+export interface RenderErrorOptions {
+  /** indicate whether a source frame should be shown */
+  showSource?: boolean;
+  /** a filter function determining whether a stack should be shown given the file path */
+  filter?: (path: string) => boolean;
+}
+
 /** default number of lines from the targeted source line to be displayed */
 const DEFAULT_SPREAD = 4;
 
@@ -49,19 +57,14 @@ const DEFAULT_YAML_THEME = {
 };
 
 /**
- * render a highly readable error stack
+ * render an error in a human readable format
  * @param error the error to be rendered
  * @param options optional parameters
- * @param options.showSource indicate whether a source frame should be shown
- * @param options.filter a filter determining whether a stack should be shown given the file path
- * @returns a rendered string to print
+ * @returns a string representation of the error
  */
-export function renderStack(
+export function renderError(
   error: Error,
-  options?: {
-    showSource?: boolean;
-    filter?: (path: string) => boolean;
-  },
+  options?: RenderErrorOptions,
 ): string {
   const {
     showSource = false,
