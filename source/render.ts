@@ -102,15 +102,13 @@ export function renderError(
  * @returns a rendered string to print
  */
 function renderAssociations(error: unknown): string | null {
-  const blocks: string[] = [];
-
-  if (error instanceof Xception && error.namespace) {
-    blocks.push(chalk.blue.underline(error.namespace));
-  }
-
-  if (error instanceof Xception && error.tags.length) {
-    blocks.push(...error.tags.map((tag) => chalk.cyan.bold(tag)));
-  }
+  const blocks: string[] =
+    error instanceof Xception
+      ? [
+          ...(error.namespace ? [chalk.blue.underline(error.namespace)] : []),
+          ...error.tags.map((tag) => chalk.cyan.bold(tag)),
+        ]
+      : [];
 
   return blocks.length ? '\n    ' + blocks.join(' ') : null;
 }
