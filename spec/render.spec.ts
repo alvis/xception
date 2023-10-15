@@ -36,7 +36,7 @@ jest.unstable_mockModule('node:fs', () => ({
           .map((_, index) => `line ${index + 1}`)
           .join('\n');
       default:
-        throw new Error(`unrecognised path: ${path}`);
+        throw new Error(`unrecognized path: ${path}`);
     }
   },
 }));
@@ -100,7 +100,7 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should render an error stack according to the supplued filter', () => {
+  it('should render an error stack according to the supplied filter', () => {
     const rendered = renderStack(
       new MockedError(
         'Error1: message1\n' +
