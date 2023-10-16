@@ -43,13 +43,13 @@
   },
   "scripts": {
     "build": "run build",
-    "coverage": "run coverage",
-    "lint": "run lint",
+    "coverage": "run coverage --",
+    "lint": "run lint --",
     "prepare": "run prepare",
     "prepublishOnly": "run prepublishOnly",
     "release": "run release --",
     "test": "run test --",
-    "watch": "run watch"
+    "watch": "run watch --"
   },
   "repository": {
     "type": "git",
