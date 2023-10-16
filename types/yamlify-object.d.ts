@@ -14,10 +14,11 @@
  */
 
 import type { Chalk } from 'chalk';
+import type { JsonArray, JsonObject } from 'type-fest';
 
 // declare module 'yamlify-object' {
 declare function yamlify(
-  source: Record<string, unknown>,
+  source: JsonArray | JsonObject,
   options?: {
     indent?: string;
     prefix?: string;

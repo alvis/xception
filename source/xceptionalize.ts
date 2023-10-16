@@ -15,6 +15,8 @@
 
 import { Xception } from './prototype';
 
+import type { JsonObject } from 'type-fest';
+
 /**
  * convert an error to an Xception instance with metadata merged while preserving the original error message and stack
  * @param error the error to be converted
@@ -24,7 +26,7 @@ import { Xception } from './prototype';
  */
 export function xceptionalize(
   error: Error,
-  options?: { meta?: Record<string, unknown> },
+  options?: { meta?: JsonObject },
 ): Xception {
   const { meta = {} } = { ...options };
 

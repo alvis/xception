@@ -15,6 +15,8 @@
 
 import { assembleStack, disassembleStack } from './stack';
 
+import type { JsonObject } from 'type-fest';
+
 /** a high-order error that combine previous stack and tags */
 export class Xception extends Error {
   /** upstream error */
@@ -24,7 +26,7 @@ export class Xception extends Error {
   public namespace?: string;
 
   /** running context */
-  public meta: Record<string, unknown>;
+  public meta: JsonObject;
 
   /** additional associations */
   public tags: string[];
@@ -42,7 +44,7 @@ export class Xception extends Error {
     options?: {
       cause?: unknown;
       namespace?: string;
-      meta?: Record<string, unknown>;
+      meta?: JsonObject;
       tags?: string[];
     },
   ) {
