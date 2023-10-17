@@ -56,9 +56,9 @@
     "url": "git+https://github.com/alvis/xception.git"
   },
   "devDependencies": {
-    "presetter-preset-hybrid": "^4.3.0",
-    "presetter-preset-strict": "^4.3.0",
-    "presetter": "^4.3.0"
+    "presetter-preset-hybrid": "^4.4.0",
+    "presetter-preset-strict": "^4.4.0",
+    "presetter": "^4.4.0"
   },
   "dependencies": {
     "chalk": "^4.0.0",
