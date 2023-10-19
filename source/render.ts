@@ -19,23 +19,32 @@ import chalk from 'chalk';
 import highlight from 'highlight-es';
 import yamlify from 'yamlify-object';
 
-import { Xception } from '#prototype';
-import { disassembleStack } from './stack';
+import { jsonify } from '#jsonify';
+import { disassembleStack } from '#stack';
+import { $cause, $meta, $namespace, $tags } from './symbols';
 
-import type { StackDescriptionBlock, StackLocationBlock } from './stack';
+import type { Chalk } from 'chalk';
+import type { JsonObject, JsonValue } from 'type-fest';
+
+import type { ErrorLike } from '#isErrorLike';
+import type { StackLocationBlock } from '#stack';
 
 /** options for rendering an error */
-export interface RenderErrorOptions {
+export interface RenderOptions {
+  /** indent for each line */
+  indent?: string;
   /** indicate whether a source frame should be shown */
   showSource?: boolean;
   /** a filter function determining whether a stack should be shown given the file path */
   filter?: (path: string) => boolean;
 }
 
-/** default number of lines from the targeted source line to be displayed */
-const DEFAULT_SPREAD = 4;
+const PADDING = '    ';
 
-const DEFAULT_CODE_THEME = {
+/** default number of lines from the targeted source line to be displayed */
+const SPREAD = 4;
+
+const CODE_THEME = {
   string: chalk.green,
   punctuator: chalk.grey,
   keyword: chalk.cyan,
@@ -45,7 +54,8 @@ const DEFAULT_CODE_THEME = {
   invalid: chalk.inverse,
 };
 
-const DEFAULT_YAML_THEME = {
+const YAML_THEME = {
+  base: chalk.white,
   error: chalk.red,
   symbol: chalk.magenta,
   string: chalk.green,
@@ -62,130 +72,230 @@ const DEFAULT_YAML_THEME = {
  * @param options optional parameters
  * @returns a string representation of the error
  */
-export function renderError(
-  error: Error,
-  options?: RenderErrorOptions,
-): string {
+export function renderError(error: Error, options?: RenderOptions): string {
   const {
+    indent = '',
     showSource = false,
-    filter = (path: string) => !path.includes('node:internal'),
+    filter = (path: string) =>
+      !path.includes('node:internal') && !path.includes('node_modules'),
   } = { ...options };
 
-  const blocks = disassembleStack(error.stack!);
+  const stack = getUniqueStack(error);
 
-  let currentError: unknown = error;
-  const renderedBlocks: string[] = [];
+  const locations = disassembleStack(stack).filter(
+    (block): block is StackLocationBlock =>
+      block.type === 'location' && filter(block.path),
+  );
 
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i];
+  const renderedBlocks: string[] = [
+    renderDescription(error, { indent }),
+    ...locations.map((block, index) =>
+      renderLocation(block, { indent, showSource: showSource && index === 0 }),
+    ),
+  ];
 
-    if (block.type === 'description') {
-      renderedBlocks.push(renderDescription(block, currentError));
-      currentError = error['cause'];
-    } else if (filter(block.path)) {
-      renderedBlocks.push(
-        renderLocation(block, {
-          showSource:
-            // NOTE a location block must follow a description block
-            showSource && blocks[i - 1].type === 'description',
-        }),
-      );
-    }
+  // ('... 6 lines matching cause stack trace ...');
+
+  if (error[$cause] instanceof Error) {
+    renderedBlocks.push(
+      chalk.grey(
+        `${indent}${PADDING}... further lines matching cause stack trace below ...\n`,
+      ),
+      renderError(error[$cause], { ...options, indent: '  ' }),
+    );
   }
 
-  return renderedBlocks.join('\n');
+  // join all rendered blocks and remove excessive new lines
+  return renderedBlocks.join('\n').replace(/(\n\s*){2,}\n/g, '\n\n');
+}
+
+/**
+ * get the metadata of an error
+ * @param error the error to be processed
+ * @returns the metadata
+ */
+function getErrorMeta(error: ErrorLike): JsonObject {
+  const meta = error[$meta] as JsonObject | undefined;
+
+  if (meta) {
+    return meta;
+  } else {
+    const {
+      name: _name,
+      message: _message,
+      stack: _stack,
+      ...properties
+    } = jsonify(error) as JsonObject;
+
+    return properties;
+  }
+}
+
+/**
+ * get the unique stack of an error
+ * @param error the error to be processed
+ * @returns the unique stack
+ */
+function getUniqueStack(error: Error): string {
+  const cause = error[$cause] as unknown;
+
+  if (cause instanceof Error) {
+    const errorStack = error.stack!.split('\n');
+    const causeStack = cause.stack!.split('\n');
+
+    const commonStackStartAt = errorStack.findIndex((line) =>
+      causeStack.includes(line),
+    );
+
+    return errorStack.splice(0, commonStackStartAt).join('\n');
+  } else {
+    return error.stack!;
+  }
 }
 
 /**
  * render associations of an error
  * @param error the related error
+ * @param options optional parameters
+ * @param options.indent indent for each line
  * @returns a rendered string to print
  */
-function renderAssociations(error: unknown): string | null {
-  const blocks: string[] =
-    error instanceof Xception
-      ? [
-          ...(error.namespace ? [chalk.blue.underline(error.namespace)] : []),
-          ...error.tags.map((tag) => chalk.cyan.bold(tag)),
-        ]
-      : [];
+function renderAssociations(
+  error: ErrorLike,
+  options: { indent: string },
+): string | null {
+  const { indent } = options;
 
-  return blocks.length ? '\n    ' + blocks.join(' ') : null;
+  const namespace = error[$namespace] as string | undefined;
+  const tags = error[$tags] as string[] | undefined;
+
+  const blocks = [
+    ...(typeof namespace === 'string'
+      ? [indent + chalk.blue.underline(namespace)]
+      : []),
+    ...(Array.isArray(tags)
+      ? tags
+          .filter((tag): tag is string => typeof tag === 'string')
+          .map((tag) => indent + chalk.cyan.bold(tag))
+      : []),
+  ];
+
+  return blocks.length ? `\n${indent}${PADDING}` + blocks.join(' ') : null;
 }
 
 /**
  * render a description line
- * @param block a stack block about an error description
  * @param error error the related error
+ * @param options optional parameters
+ * @param options.indent indent for each line
  * @returns a rendered string to print
  */
 function renderDescription(
-  block: StackDescriptionBlock,
-  error?: unknown,
+  error: ErrorLike,
+  options: { indent: string },
 ): string {
-  const { name, message } = block;
-  const description = chalk.red(`[${chalk.bold(name)}] ${message}`);
-  const association = renderAssociations(error);
-  const meta = renderMeta(error);
+  const { indent } = options;
 
-  return [description, association, meta].filter((block) => !!block).join('\n');
+  const description =
+    indent + chalk.red(`[${chalk.bold(error.name)}] ${error.message}`);
+
+  const association = renderAssociations(error, options);
+  const meta = renderMeta(getErrorMeta(error), {
+    indent,
+    prefix: `\n${indent}${PADDING}${chalk.white.underline('METADATA')}\n`,
+    postfix: '\n',
+  });
+  const cause =
+    // NOTE: cause is rendered only if it is not an error
+    error[$cause] && !(error[$cause] instanceof Error)
+      ? renderMeta(jsonify(error[$cause]), {
+          indent,
+          prefix: `\n${indent}${PADDING}${chalk.white.underline('CAUSE')}\n`,
+          postfix: '\n',
+        })
+      : null;
+
+  return [description, association, meta, cause]
+    .filter((block) => !!block)
+    .join('\n');
 }
 
 /**
  * render a location line
  * @param block a stack block about a location
  * @param options optional parameters
+ * @param options.indent indent for each line
  * @param options.showSource indicate whether a source frame should be shown
  * @returns a rendered string to print
  */
-function renderLocation(
+export function renderLocation(
   block: StackLocationBlock,
-  options: { showSource: boolean },
+  options: { indent: string; showSource: boolean },
 ): string {
   const { entry, path, line, column } = block;
-  const { showSource } = { ...options };
+  const { indent, showSource } = options;
 
   const location = `${path}:${line}:${column}`;
 
-  const sourceFrame = showSource ? renderSource(block) : '';
+  const sourceFrame = showSource ? renderSource(block, { indent }) : '';
 
   return (
-    `    at ${chalk.grey.bold(entry)} (${chalk.grey.underline(location)})` +
-    (sourceFrame ? '\n' + sourceFrame : '')
+    `${indent}${PADDING}at ${chalk.grey.bold(entry)} (${chalk.grey.underline(
+      location,
+    )})` + (sourceFrame ? '\n' + sourceFrame : '')
   );
 }
 
 /**
  * render metadata in an error
- * @param error the related error
+ * @param properties additional properties of an error
+ * @param options optional parameters
+ * @param options.indent indent for each line
+ * @param options.prefix the prefix to be added before the rendered string
+ * @param options.postfix the postfix to be added after the rendered string
  * @returns a rendered string to print
  */
-function renderMeta(error: unknown): string | null {
-  return error instanceof Xception && Object.keys(error.meta).length
-    ? yamlify(error.meta, {
-        indent: '    ',
-        prefix: '\n',
-        postfix: '\n',
-        colors: DEFAULT_YAML_THEME,
-      })
-    : null;
+function renderMeta(
+  properties: JsonValue,
+  options: { indent: string; prefix: string; postfix: string },
+): string | null {
+  const { indent, prefix, postfix } = options;
+
+  if (properties instanceof Object && Object.keys(properties).length) {
+    return yamlify(properties, {
+      indent: indent + PADDING,
+      prefix,
+      postfix,
+      colors: YAML_THEME,
+    });
+  } else if (
+    typeof properties === 'boolean' ||
+    typeof properties === 'number' ||
+    typeof properties === 'string'
+  ) {
+    const colorize = YAML_THEME[typeof properties] as Chalk;
+
+    return prefix + PADDING + colorize(properties.toString());
+  }
+
+  return null;
 }
 
 /**
  * render a source frame
  * @param block a location block
  * @param options options for rendering
- * @param options.spread the number of lines from the targeted source line to be displayed
+ * @param options.indent indent for each line
  * @returns a rendered string to print
  */
 function renderSource(
   block: StackLocationBlock,
-  options?: {
-    spread?: number;
+  options: {
+    indent: string;
   },
 ): string {
   const { path, line } = block;
-  const { spread = DEFAULT_SPREAD } = { ...options };
+  const { indent } = options;
 
   // no source frame if the source is missing
   if (!existsSync(path)) {
@@ -193,11 +303,11 @@ function renderSource(
   }
 
   const content = readFileSync(path).toString();
-  const highlighted = highlight(content, DEFAULT_CODE_THEME);
+  const highlighted = highlight(content, CODE_THEME);
   const lines = highlighted.split(/[\r\n]/);
-  const base = Math.max(line - spread - 1, 0);
-  const displayLines = lines.slice(base, line + spread);
-  const lineNumberWidth = (line + spread).toString().length;
+  const base = Math.max(line - SPREAD - 1, 0);
+  const displayLines = lines.slice(base, line + SPREAD);
+  const lineNumberWidth = (line + SPREAD).toString().length;
 
   const sourceFrame = displayLines
     .map((source, index) => {
@@ -207,7 +317,7 @@ function renderSource(
       const prefix = isTarget ? '>' : ' ';
       const gutter = ` ${prefix} ${formattedLine} `;
 
-      return `${isTarget ? chalk.bgRed(gutter) : gutter}| ${source}`;
+      return `${indent}${isTarget ? chalk.bgRed(gutter) : gutter}| ${source}`;
     })
     .join('\n');
 

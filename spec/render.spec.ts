@@ -51,18 +51,19 @@ class MockedError extends Error {
   constructor(stack: string) {
     super();
 
+    this.name = stack.split('\n')[0].split(':')[0];
+    this.message = stack.split('\n')[0].split(':')[1].trim();
     this.stack = stack;
   }
 }
 
-const { renderError: renderStack } = await import('#render');
+const { renderError } = await import('#render');
 describe('fn:renderError', () => {
   it('should render an error stack with its own format', () => {
-    const rendered = renderStack(
+    const rendered = renderError(
       new MockedError(
         'Error1: message1\n' +
           '    at entry1 (src1:1:0)\n' +
-          'Error2: message2\n' +
           '    at entry2 (src2:2:0)',
       ),
     );
@@ -72,19 +73,17 @@ describe('fn:renderError', () => {
     expect(plain).toEqual(
       '[Error1] message1\n' +
         '    at entry1 (src1:1:0)\n' +
-        '[Error2] message2\n' +
         '    at entry2 (src2:2:0)',
     );
   });
 
-  it('should render an error stack without node:internal by default', () => {
-    const rendered = renderStack(
+  it('should render an error stack without node:internal & node_modules by default', () => {
+    const rendered = renderError(
       new MockedError(
         'Error1: message1\n' +
           '    at entry1 (src1:1:0)\n' +
           '    at third_party (./node_modules/third_party/src:1:0)\n' +
           '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
-          'Error2: message2\n' +
           '    at entry2 (src2:2:0)',
       ),
     );
@@ -94,20 +93,17 @@ describe('fn:renderError', () => {
     expect(plain).toEqual(
       '[Error1] message1\n' +
         '    at entry1 (src1:1:0)\n' +
-        '    at third_party (./node_modules/third_party/src:1:0)\n' +
-        '[Error2] message2\n' +
         '    at entry2 (src2:2:0)',
     );
   });
 
   it('should render an error stack according to the supplied filter', () => {
-    const rendered = renderStack(
+    const rendered = renderError(
       new MockedError(
         'Error1: message1\n' +
           '    at entry1 (src1:1:0)\n' +
           '    at third_party (./node_modules/third_party/src:1:0)\n' +
           '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
-          'Error2: message2\n' +
           '    at entry2 (src2:2:0)',
       ),
       { filter: (path: string) => !path.includes('node_modules') },
@@ -119,17 +115,15 @@ describe('fn:renderError', () => {
       '[Error1] message1\n' +
         '    at entry1 (src1:1:0)\n' +
         '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
-        '[Error2] message2\n' +
         '    at entry2 (src2:2:0)',
     );
   });
 
   it('should render an error stack with the source', () => {
-    const rendered = renderStack(
+    const rendered = renderError(
       new MockedError(
         'Error1: message1\n' +
           '    at entry1 (src1:1:0)\n' +
-          'Error2: message2\n' +
           '    at entry2 (src2:9:0)',
       ),
       { showSource: true },
@@ -147,27 +141,15 @@ describe('fn:renderError', () => {
         '   4 | line 4\n' +
         '   5 | line 5\n' +
         '\n' +
-        '[Error2] message2\n' +
-        '    at entry2 (src2:9:0)\n' +
-        '\n' +
-        '    5 | line 5\n' +
-        '    6 | line 6\n' +
-        '    7 | line 7\n' +
-        '    8 | line 8\n' +
-        ' >  9 | line 9\n' +
-        '   10 | line 10\n' +
-        '   11 | line 11\n' +
-        '   12 | line 12\n' +
-        '   13 | line 13\n',
+        '    at entry2 (src2:9:0)',
     );
   });
 
   it('should render an error stack with the source absent', () => {
-    const rendered = renderStack(
+    const rendered = renderError(
       new MockedError(
         'Error1: message1\n' +
           '    at entry1 (absent:1:0)\n' +
-          'Error2: message2\n' +
           '    at entry2 (absent:2:0)',
       ),
       { showSource: true },
@@ -178,30 +160,31 @@ describe('fn:renderError', () => {
     expect(plain).toEqual(
       '[Error1] message1\n' +
         '    at entry1 (absent:1:0)\n' +
-        '[Error2] message2\n' +
         '    at entry2 (absent:2:0)',
     );
   });
 
   it('should render metadata', () => {
-    const rendered = renderStack(
-      new Xception('message', {
-        cause: new Xception('message', {
-          meta: { name: 'xception' },
-        }),
+    const rendered = renderError(
+      new Xception('message1', {
+        meta: { name: 'xception' },
       }),
     );
 
     const plain = rendered.replace(ansiExpression, '');
 
-    expect(plain).toContain('[Xception] message\n' + '    at');
     expect(plain).toContain(
-      '[Xception] message\n' + '\n' + '    name: xception\n' + '\n' + '    at',
+      '[Xception] message1\n' +
+        '\n' +
+        '    METADATA\n' +
+        '    name: xception\n' +
+        '\n' +
+        '    at',
     );
   });
 
   it('should render associations', () => {
-    const rendered = renderStack(
+    const rendered = renderError(
       new Xception('message', {
         namespace: 'xception',
         tags: ['tag1', 'tag2'],
@@ -216,9 +199,36 @@ describe('fn:renderError', () => {
         '\n' +
         '    xception tag1 tag2\n' +
         '\n' +
+        '    METADATA\n' +
         '    name: xception\n' +
         '\n' +
         '    at',
     );
+  });
+
+  it('should render a nested error', () => {
+    const rendered = renderError(
+      new Xception('message1', {
+        cause: new Xception('message2'),
+      }),
+    );
+
+    const plain = rendered.replace(ansiExpression, '');
+
+    expect(plain).toContain('[Xception] message1\n' + '    at');
+    expect(plain).toContain('[Xception] message2\n' + '      at');
+  });
+
+  it('should render a non-error cause', () => {
+    const rendered = renderError(
+      new Xception('message', {
+        cause: 'something went wrong',
+      }),
+    );
+
+    const plain = rendered.replace(ansiExpression, '');
+
+    expect(plain).toContain('[Xception] message\n');
+    expect(plain).toContain('CAUSE\n' + '    something went wrong');
   });
 });

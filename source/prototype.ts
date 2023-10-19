@@ -13,68 +13,98 @@
  * -------------------------------------------------------------------------
  */
 
-import { assembleStack, disassembleStack } from './stack';
+import { jsonify } from '#jsonify';
+import { $cause, $meta, $namespace, $tags } from '#symbols';
 
 import type { JsonObject } from 'type-fest';
+
+export interface XceptionOptions {
+  /** upstream error */
+  cause?: unknown;
+  /** error namespace */
+  namespace?: string;
+  /** context where the error occur */
+  meta?: Record<string, unknown>;
+  /** additional associations for the error */
+  tags?: string[];
+}
 
 /** a high-order error that combine previous stack and tags */
 export class Xception extends Error {
   /** upstream error */
-  public cause?: unknown;
+  protected [$cause]?: unknown;
 
   /** error namespace */
-  public namespace?: string;
+  protected [$namespace]?: string;
 
   /** running context */
-  public meta: JsonObject;
+  protected [$meta]: Record<string, unknown>;
 
   /** additional associations */
-  public tags: string[];
+  protected [$tags]: string[];
 
   /**
    * @param message error message
    * @param options additional options for the error
-   * @param options.cause upstream error
-   * @param options.namespace namespace of the error
-   * @param options.meta context where the error occur
-   * @param options.tags additional associations for the error
    */
-  constructor(
-    message: string,
-    options?: {
-      cause?: unknown;
-      namespace?: string;
-      meta?: JsonObject;
-      tags?: string[];
-    },
-  ) {
-    const { cause, namespace, meta = {}, tags = [] } = { ...options };
+  constructor(message: string, options?: XceptionOptions) {
+    const { namespace, cause, meta = {}, tags = [] } = { ...options };
 
     super(message);
-    this.cause = cause;
-    this.namespace = namespace;
-    this.meta = meta;
 
     // fix the name of the error class being 'Error'
     this.name = this.constructor.name;
 
-    // enrich the stack
-    this.stack =
-      cause instanceof Error && cause.stack && this.stack
-        ? [
-            // the error message and the location where the error is formed
-            assembleStack(
-              disassembleStack(this.stack).slice(
-                0,
-                // description + location
-                1 + 1,
-              ),
-            ),
-            cause.stack,
-          ].join('\n')
-        : this.stack;
+    // assign namespace, cause & meta
+    this[$namespace] = namespace;
+    this[$cause] = cause;
+    this[$meta] = meta;
 
-    // attach tags to the error
-    this.tags = cause instanceof Xception ? [...cause.tags, ...tags] : tags;
+    // attach tags
+    this[$tags] = cause instanceof Xception ? [...cause[$tags], ...tags] : tags;
+  }
+
+  /**
+   * get the upstream error
+   */
+  public get cause(): unknown {
+    return this[$cause];
+  }
+
+  /**
+   * get the error namespace
+   */
+  public get namespace(): string | undefined {
+    return this[$namespace];
+  }
+
+  /**
+   * get the running context
+   */
+  public get meta(): Record<string, unknown> {
+    return this[$meta];
+  }
+
+  /**
+   * get the additional associations
+   */
+  public get tags(): string[] {
+    return this[$tags];
+  }
+
+  /**
+   * convert the error to a jsonifiable object
+   * @returns a jsonifiable object
+   */
+  public toJSON(): JsonObject {
+    return {
+      ...(this[$namespace] ? { namespace: this[$namespace] } : {}),
+      name: this.name,
+      message: this.message,
+      stack: this.stack!,
+      ...(this[$cause] ? { cause: jsonify(this[$cause]) } : {}),
+      meta: jsonify(this[$meta]),
+      tags: this[$tags],
+    };
   }
 }

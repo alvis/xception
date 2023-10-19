@@ -14,6 +14,7 @@
  */
 
 import { Xception } from '#prototype';
+import { $cause, $meta, $namespace, $tags } from '#symbols';
 
 class NewError extends Xception {
   constructor(options?: { cause?: unknown }) {
@@ -46,52 +47,90 @@ describe('cl:Xception', () => {
   const extendedError = getExtendedError();
   const newError = getNewError();
 
-  it('should embed the wrapped error', () => {
-    const cause = new Error('message');
-    const xception = new Xception('extended', {
-      cause,
+  describe('constructor', () => {
+    it('should embed the wrapped error', () => {
+      const cause = new Error('message');
+      const xception = new Xception('extended', {
+        cause,
+      });
+
+      expect(xception[$cause]).toEqual(cause);
     });
 
-    expect(xception.cause).toEqual(cause);
-  });
-
-  it('should specify the namespace when supplied', () => {
-    expect(extendedError.namespace).toEqual('test:xception');
-  });
-
-  it('should embed the metadata when supplied', () => {
-    expect(extendedError.meta).toEqual({ name: 'xception' });
-  });
-
-  it('should pass tags to the inherited class', () => {
-    expect(newError.tags).toEqual(['extended', 'new']);
-  });
-
-  it('should keep its own stack if the attached error has no stack', () => {
-    const error = new Xception('message', {
-      cause: { name: 'GenericError', message: 'error' },
+    it('should specify the namespace when supplied', () => {
+      expect(extendedError[$namespace]).toEqual('test:xception');
     });
 
-    expect(error.stack).not.toContain('GenericError');
+    it('should embed the metadata when supplied', () => {
+      expect(extendedError[$meta]).toEqual({ name: 'xception' });
+    });
+
+    it('should pass tags to the inherited class', () => {
+      expect(newError[$tags]).toEqual(['extended', 'new']);
+    });
+
+    it('should keep its own stack if the attached error has no stack', () => {
+      const error = new Xception('message', {
+        cause: { name: 'GenericError', message: 'error' },
+      });
+
+      expect(error.stack).not.toContain('GenericError');
+    });
+
+    it('should take a normal error if no origin is attached', () => {
+      const error = new Xception('message', { tags: ['tag'] });
+
+      expect(error.stack).toContain('Xception');
+      expect(error[$tags]).toEqual(['tag']);
+    });
+
+    it('should bear the right error type', () => {
+      expect(extendedError.name).toEqual('Xception');
+      expect(newError.name).toEqual('NewError');
+    });
   });
 
-  it('should take a normal error if no origin is attached', () => {
-    const error = new Xception('message', { tags: ['tag'] });
+  describe('getter', () => {
+    it('should return the cause', () => {
+      expect(extendedError.cause).toEqual(new Error('message'));
+    });
 
-    expect(error.stack).toContain('Xception');
-    expect(error.tags).toEqual(['tag']);
+    it('should return the namespace', () => {
+      expect(extendedError.namespace).toEqual('test:xception');
+    });
+
+    it('should return the metadata', () => {
+      expect(extendedError.meta).toEqual({ name: 'xception' });
+    });
+
+    it('should return the tags', () => {
+      expect(extendedError.tags).toEqual(['extended']);
+    });
   });
 
-  it('should bear the right error type', () => {
-    expect(extendedError.name).toEqual('Xception');
-    expect(newError.name).toEqual('NewError');
-  });
+  describe('toJSON', () => {
+    it('should return a jsonifiable object', () => {
+      expect(new Xception('message').toJSON()).toEqual({
+        name: 'Xception',
+        message: 'message',
+        meta: {},
+        tags: [],
+        stack: expect.any(String),
+      });
 
-  it('should contain previous stacks', () => {
-    expect(newError.stack).toContain('NewError: new error');
-    expect(newError.stack).toContain('Xception: extended');
-    expect(newError.stack).toContain('Error: message');
+      expect(extendedError.toJSON()).toEqual({
+        name: 'Xception',
+        message: 'extended',
+        meta: { name: 'xception' },
+        namespace: 'test:xception',
+        tags: ['extended'],
+        stack: expect.any(String),
+        cause: {
+          name: 'Error',
+          message: 'message',
+          stack: expect.any(String),
+        },
+      });
+    });
   });
 });
-
-getExtendedError();
