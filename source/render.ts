@@ -66,6 +66,8 @@ const YAML_THEME = {
   undefined: chalk.yellow.bold,
 };
 
+const EXCESSIVE_NEWLINE = /(\n\s*){2,}\n/g;
+
 /**
  * render an error in a human readable format
  * @param error the error to be rendered
@@ -106,7 +108,7 @@ export function renderError(error: Error, options?: RenderOptions): string {
   }
 
   // join all rendered blocks and remove excessive new lines
-  return renderedBlocks.join('\n').replace(/(\n\s*){2,}\n/g, '\n\n');
+  return renderedBlocks.join('\n').replace(EXCESSIVE_NEWLINE, '\n\n').trim();
 }
 
 /**
