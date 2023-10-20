@@ -35,6 +35,8 @@ export interface RenderOptions {
   indent?: string;
   /** indicate whether a source frame should be shown */
   showSource?: boolean;
+  /** indicate whether the full stack should be shown */
+  showStack?: boolean;
   /** a filter function determining whether a stack should be shown given the file path */
   filter?: (path: string) => boolean;
 }
@@ -78,6 +80,7 @@ export function renderError(error: Error, options?: RenderOptions): string {
   const {
     indent = '',
     showSource = false,
+    showStack = true,
     filter = (path: string) =>
       !path.includes('node:internal') && !path.includes('node_modules'),
   } = { ...options };
@@ -86,7 +89,7 @@ export function renderError(error: Error, options?: RenderOptions): string {
 
   const locations = disassembleStack(stack).filter(
     (block): block is StackLocationBlock =>
-      block.type === 'location' && filter(block.path),
+      showStack && block.type === 'location' && filter(block.path),
   );
 
   const renderedBlocks: string[] = [

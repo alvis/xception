@@ -77,6 +77,21 @@ describe('fn:renderError', () => {
     );
   });
 
+  it('should skip the stack if instructed', () => {
+    const rendered = renderError(
+      new MockedError(
+        'Error1: message1\n' +
+          '    at entry1 (src1:1:0)\n' +
+          '    at entry2 (src2:2:0)',
+      ),
+      { showStack: false },
+    );
+
+    const plain = rendered.replace(ansiExpression, '');
+
+    expect(plain).toEqual('[Error1] message1');
+  });
+
   it('should render an error stack without node:internal & node_modules by default', () => {
     const rendered = renderError(
       new MockedError(
