@@ -14,14 +14,14 @@ _Trace error with 100% confidence, quick and precise!_
 
 _/ Error Tracing /_
 
-- **Error Wrapping**: repack an error with a customisable error class and its context
+- **Error Wrapping**: repack an error with a customizable error class and its context
 - **Metadata Support**: embed the context into the error for better tracing
 - **Namespace and Tag Support**: associate an error with tags for selective logging
 
 _/ Stack Rendering /_
 
 - **Flexible Filtering**: render a call stack without the noise from node's internal etc
-- **Colourised Output**: debug in console with highlight on important information
+- **Colorized Output**: debug in console with highlight on important information
 - **Source Embedding**: display the logic where the error happened
 
 ## Motivation
@@ -92,19 +92,20 @@ class YourError extends Xception {
 
 ---
 
-### Method: renderStack
+### Method: renderError
 
-Generate a highly readable stacktrace of an error with all of its upstream errors and contexts.
+Generate a highly readable representation of an error with all of its upstream errors and contexts.
 
-▸ **renderStack(error: Error, options?: RenderStackOptions): string**
+▸ **renderError(error: Error, options?: RenderOptions): string**
 
 | Parameter             | Type                      | Description                                                                                                                                           |
 | --------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `error`               | Error                     | the error of which the stack will be rendered                                                                                                         |
 | `options.showSource?` | boolean                   | true to instructs the renderer to show the error source if available _(default: **`false`**)_                                                         |
+| `options.showStack?`  | boolean                   | true to instructs the renderer to show the stack _(default: **`true`**)_                                                                              |
 | `options.filter?`     | (path: string) => boolean | a function to determiner where a stack should be displayed according to its path _(default: **`(path: string) => !path.includes('node:internal')`)**_ |
 
-**Note**: For a typescript project, if you want to show the original typescript source instead of the transpiled javascript, run the code with `ts-node`, or the equivalent `node -r ts-node/register`.
+**Note**: For a typescript project, if you want to show the original typescript source instead of the transpiled javascript, register the code with [`import 'source-map-support/register'`](https://www.npmjs.com/package/source-map-support), or run the equivalent `node -r source-map-support/register <code path>`.
 
 #### _/ Example /_
 
@@ -116,7 +117,7 @@ function erroneous() {
   try {
     throw new Error('error from the upstream');
   } catch (cause) {
-    throw new YourError(cause);
+    throw new YourError('your error message', { cause });
   }
 }
 
@@ -124,7 +125,7 @@ try {
   erroneous();
 } catch (error) {
   log(
-    renderStack(error, {
+    renderError(error, {
       showSource: true,
       filter(path: string): boolean {
         return (
@@ -136,7 +137,7 @@ try {
 }
 ```
 
-```
+```plain
 [YourError] your error message
 
     your_org:service_name:operation_name user_error retryable
@@ -200,9 +201,9 @@ Got an idea for workarounds for these issues? [Let the community know.](https://
 Copyright © 2020, [Alvis Tang](https://github.com/alvis). Released under the [MIT License](LICENSE).
 
 [![npm](https://img.shields.io/npm/v/xception?style=flat-square)](https://github.com/alvis/xception/releases)
-[![build](https://img.shields.io/github/workflow/status/alvis/xception/code%20test?style=flat-square)](https://github.com/alvis/xception/actions)
+[![build](https://img.shields.io/github/actions/workflow/status/alvis/xception/test.yaml?style=flat-square)](https://github.com/alvis/xception/actions)
 [![maintainability](https://img.shields.io/codeclimate/maintainability/alvis/xception?style=flat-square)](https://codeclimate.com/github/alvis/xception/maintainability)
 [![coverage](https://img.shields.io/codeclimate/coverage/alvis/xception?style=flat-square)](https://codeclimate.com/github/alvis/xception/test_coverage)
-[![security](https://img.shields.io/snyk/vulnerabilities/github/alvis/xception?style=flat-square)](https://snyk.io/test/github/alvis/xception?style=flat-square)
-[![dependencies](https://img.shields.io/david/alvis/xception?style=flat-square)](https://david-dm.org/alvis/xception?path=packages/xception)
+[![security](https://img.shields.io/snyk/vulnerabilities/github/alvis/xception?style=flat-square)](https://snyk.io/advisor/npm-package/xception)
+[![dependencies](https://img.shields.io/librariesio/release/npm/xception?style=flat-square)](https://libraries.io/npm/xception)
 [![license](https://img.shields.io/github/license/alvis/xception.svg?style=flat-square)](https://github.com/alvis/xception/blob/master/LICENSE)
