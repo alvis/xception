@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [4.0.0](https://github.com/alvis/xception/compare/v3.0.0...v4.0.0) (2023-10-21)
+
+
+### ✨ Features
+
+* add a render shorthand to Xception ([32e518b](https://github.com/alvis/xception/commit/32e518b3dcdf748a416d5b184e9b6f858151e3c5))
+* add a showStack option to renderError ([41d47c2](https://github.com/alvis/xception/commit/41d47c2d2d352c9788c72414ecec0105b8f541a1))
+* improve renderer for various kind of error ([c4486c8](https://github.com/alvis/xception/commit/c4486c8c8f68d3cbfdd85527f9340035ee12887b))
+* provide a helper for detecting error-like object ([b66213a](https://github.com/alvis/xception/commit/b66213a72f731bf4a56318583ec31ed47488c8f8))
+* provide a helper to prepare a printable object ([2f6ef46](https://github.com/alvis/xception/commit/2f6ef46d67c456d4e7e0bd2f255fb66dfd535202))
+* provide symbols to be used for accessing private properties ([70f5661](https://github.com/alvis/xception/commit/70f5661f7718e0a55a5ac3320ffb057be74ef6c5))
+
+
+### 🐛 Bug Fixes
+
+* correct the typing for yamlify-object ([af97ff4](https://github.com/alvis/xception/commit/af97ff49e48a5cb0ea5fa715105528353b9dbcb4))
+* remove potential unnecessary trailing spaces ([32bdc5e](https://github.com/alvis/xception/commit/32bdc5e8896ed5d3c5a246f130d886948fa229c0))
+
+
+### 🛠 Builds
+
+* make scripts accept individual paths for tests ([6ee653b](https://github.com/alvis/xception/commit/6ee653bc9c25d71f30e00f7ae86791b96b67926a))
+* update presetter to v4.4 ([7743abf](https://github.com/alvis/xception/commit/7743abff7a7db617f1b9016a3d5b70b1812e0119))
+
+
+### 📦 Code Refactoring
+
+* convert renderAssociations to functional ([58b2b38](https://github.com/alvis/xception/commit/58b2b38982736b9f8e02d1c4189d399e92d2bed3))
+
+
+### 🚨 Tests
+
+* correct typos ([7542862](https://github.com/alvis/xception/commit/7542862a1c24459348b8b14d35c277d43d9f61b0))
+
+
+
 # [3.0.0](https://github.com/alvis/xception/compare/v2.0.0...v3.0.0) (2023-09-20)
 
 
