@@ -108,6 +108,15 @@ describe('cl:Xception', () => {
     });
   });
 
+  describe('render', () => {
+    it('should render the error', () => {
+      const rendered = extendedError.render();
+
+      expect(rendered).toContain('[Xception] extended');
+      expect(rendered).toContain('at');
+    });
+  });
+
   describe('toJSON', () => {
     it('should return a jsonifiable object', () => {
       expect(new Xception('message').toJSON()).toEqual({

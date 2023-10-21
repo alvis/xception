@@ -15,8 +15,6 @@
 
 import { jest } from '@jest/globals';
 
-import { Xception } from '#prototype';
-
 jest.unstable_mockModule('node:fs', () => ({
   existsSync(path: string) {
     switch (path) {
@@ -56,7 +54,7 @@ class MockedError extends Error {
     this.stack = stack;
   }
 }
-
+const { Xception } = await import('#prototype');
 const { renderError } = await import('#render');
 describe('fn:renderError', () => {
   it('should render an error stack with its own format', () => {

@@ -14,9 +14,12 @@
  */
 
 import { jsonify } from '#jsonify';
+import { renderError } from '#render';
 import { $cause, $meta, $namespace, $tags } from '#symbols';
 
 import type { JsonObject } from 'type-fest';
+
+import type { RenderOptions } from '#render';
 
 export interface XceptionOptions {
   /** upstream error */
@@ -90,6 +93,15 @@ export class Xception extends Error {
    */
   public get tags(): string[] {
     return this[$tags];
+  }
+
+  /**
+   * render the error to a string
+   * @param options optional parameters
+   * @returns a rendered string to print
+   */
+  public render(options?: RenderOptions): string {
+    return renderError(this, options);
   }
 
   /**

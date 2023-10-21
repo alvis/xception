@@ -90,6 +90,14 @@ class YourError extends Xception {
 }
 ```
 
+#### Method: render
+
+A shorthand for `renderError(this, options)` to generate a highly readable representation of the error with all of its upstream errors and contexts.
+
+▸ **render(options?: RenderOptions): string**
+
+See [`renderError`](#method-rendererror) for the details of the options.
+
 ---
 
 ### Method: renderError
