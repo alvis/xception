@@ -182,6 +182,44 @@ try {
 
 ---
 
+### Method: xception
+
+Convert an error to an Xception instance with metadata merged, preserving the original error message and stack.
+
+▸ **xception(exception: unknown, options?: Options): Xception**
+
+| Parameter           | Type                                                      | Description                                                                                            |
+| ------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `exception`         | unknown                                                   | a string, error, Xception, or object with a message property to be converted into an Xception instance |
+| `options.meta`      | `Record<string, unknown>`                                 | metadata to be embedded in the error                                                                   |
+| `options.namespace` | `string`                                                  | an identifier of the component where the error occurred                                                |
+| `options.tags`      | `string[]`                                                | tags for associating the error with specific contexts or categories                                    |
+| `options.factory`   | `(message: string, options: XceptionOptions) => Xception` | a custom factory function for creating `Xception` instances                                            |
+
+#### _/ Example /_
+
+```ts
+import { xception } from 'xception';
+
+try {
+  throw new Error('original error message');
+} catch (e) {
+  // convert to Xception with additional metadata
+  const customError = xception(error, {
+    meta: { key: 'value' },
+    namespace: 'namespace',
+    tags: ['critical'],
+    factory: (message, options) => new CustomXception(message, options),
+  });
+
+  throw customError;
+}
+```
+
+This method allows for the transformation of existing errors into `Xception` instances, facilitating a unified approach to error handling and logging within applications.
+
+---
+
 ## Know Issues & Limitations
 
 - This package is designed to provide server-side debugging functionality only. It has not been tested on any web browsers.

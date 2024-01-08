@@ -15,8 +15,8 @@
 
 import { Xception } from '#prototype';
 
+import { $meta } from '#symbols';
 import xception from '#xception';
-import { $cause, $meta } from '#symbols';
 
 describe('fn:xceptionalize', () => {
   it('should wrap a string as an Xception', () => {
