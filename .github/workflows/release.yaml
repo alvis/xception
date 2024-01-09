@@ -7,21 +7,14 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18]
     steps:
       - name: checkout
-        uses: actions/checkout@v2
-      - name: use node ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v4
+      - name: use node LTS
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: cache node_modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-dependencies-${{ hashFiles('package-lock.json') }}
+          node-version: lts/*
+          cache: 'npm'
       - name: install dependencies
         run: npm ci
       - name: create release notes
