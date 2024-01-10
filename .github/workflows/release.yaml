@@ -7,6 +7,9 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -27,3 +30,5 @@ jobs:
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
       - name: release to npm
         run: npm publish
+        env:
+          NPM_CONFIG_PROVENANCE: true
