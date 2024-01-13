@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [4.1.0](https://github.com/alvis/xception/compare/v4.0.0...v4.1.0) (2024-01-13)
+
+
+### ✨ Features
+
+* introduce a factory option in xception ([9f9d002](https://github.com/alvis/xception/commit/9f9d0029a5b556015b13131b59c259531268bdfd))
+
+
+### 📚 Documentation
+
+* update security badge ([b72cd3f](https://github.com/alvis/xception/commit/b72cd3f26d5bccca4f1a339f1d41856eb6a38f5f))
+
+
+### ⚙️ Continuous Integrations
+
+* release with provenance statements ([a7b5c04](https://github.com/alvis/xception/commit/a7b5c049d62f3fc488fda674690cfa4e79b7602e))
+* update github actions ([1659d55](https://github.com/alvis/xception/commit/1659d557c59204ee5fc8ca7f06bac957e73f1183))
+
+
+
 # [4.0.0](https://github.com/alvis/xception/compare/v3.0.0...v4.0.0) (2023-10-21)
 
 
