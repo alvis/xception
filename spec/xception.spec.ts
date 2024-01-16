@@ -23,7 +23,7 @@ describe('fn:xceptionalize', () => {
     const xceptionalizedError = xception('test');
     expect(xceptionalizedError).toBeInstanceOf(Xception);
     expect(xceptionalizedError.name).toEqual('Xception');
-    expect(xceptionalizedError.message).toEqual('test');
+    expect(xceptionalizedError.message).toEqual('non-error: test');
     expect(xceptionalizedError.stack).toBeDefined();
     expect(xceptionalizedError[$meta]).toEqual({});
   });
@@ -57,6 +57,9 @@ describe('fn:xceptionalize', () => {
   });
 
   it('should throw an exception if the input is not a string, an error or an Xception', () => {
-    expect(() => xception(1)).toThrow(`unexpected exception type`);
+    const xceptionalizedError = xception(1);
+
+    expect(xceptionalizedError.message).toEqual(`non-error: 1`);
+    expect(xceptionalizedError.cause).toEqual(1);
   });
 });

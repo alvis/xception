@@ -35,6 +35,8 @@ export default function xception(
   exception: unknown, // string, error, Xception, { message: string, ...}
   options?: Options,
 ): Xception {
+  const cause = exception;
+
   // when options.factory is provided, it's used to create Xception instances; otherwise, the default constructor is used
   const factory =
     options?.factory ??
@@ -46,25 +48,22 @@ export default function xception(
     const { namespace, meta, tags } = computeDefaults(exception, options);
 
     // create a new Xception with the original error's message and computed options
-    const error = factory(exception.message, { namespace, meta, tags });
+    const error = factory(exception.message, { namespace, meta, tags, cause });
 
     // replace the name and stack from the original error
     error.name = exception.name ?? error.name;
     error.stack = exception.stack ?? error.stack;
 
     return error;
-  } else if (typeof exception === 'string') {
-    // if exception is a string, we create a new Xception with the given message and options
-    const { namespace, meta, tags } = { ...options };
-
-    return factory(exception, { namespace, meta, tags });
   }
 
-  // if exception is of unexpected type, throw a new Xception indicating the problem
-  throw new Xception('unexpected exception type', {
-    ...options,
-    cause: exception,
-  });
+  // create a new Xception with the given message and options
+  const { namespace, meta, tags } = { ...options };
+  // try to extract the message from the exception, otherwise use a generic message
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+  const message = `non-error: ${exception}`;
+
+  return factory(message, { namespace, meta, tags, cause });
 }
 
 /**
