@@ -5,7 +5,7 @@
  * See the LICENSE file for details.
  * -------------------------------------------------------------------------
  *
- * @summary
+ * @summary   Base class for Xception
  *
  * @author    Alvis HT Tang <alvis@hilbert.space>
  * @license   MIT

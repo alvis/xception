@@ -13,7 +13,7 @@
  * -------------------------------------------------------------------------
  */
 
-import { Xception } from '#prototype';
+import { Xception } from '#base';
 
 import { $meta } from '#symbols';
 import xception from '#xception';

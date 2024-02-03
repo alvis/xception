@@ -13,7 +13,7 @@
  * -------------------------------------------------------------------------
  */
 
-import { Xception } from '#prototype';
+import { Xception } from '#base';
 import { $cause, $meta, $namespace, $tags } from '#symbols';
 
 class NewError extends Xception {

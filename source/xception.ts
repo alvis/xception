@@ -13,12 +13,12 @@
  * -------------------------------------------------------------------------
  */
 
+import { Xception } from '#base';
 import { isErrorLike } from '#isErrorLike';
-import { Xception } from '#prototype';
 import { $meta, $namespace, $tags } from '#symbols';
 
+import type { XceptionOptions } from '#base';
 import type { ErrorLike } from '#isErrorLike';
-import type { XceptionOptions } from '#prototype';
 
 type Options = Omit<XceptionOptions, 'cause'> & {
   factory?: (message: string, options: XceptionOptions) => Xception;
