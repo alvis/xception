@@ -60,8 +60,7 @@ export default function xception(
   // create a new Xception with the given message and options
   const { namespace, meta, tags } = { ...options };
   // try to extract the message from the exception, otherwise use a generic message
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  const message = `non-error: ${exception}`;
+  const message = `non-error: ${String(exception)}`;
 
   return factory(message, { namespace, meta, tags, cause });
 }
