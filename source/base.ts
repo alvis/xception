@@ -64,7 +64,10 @@ export class Xception extends Error {
     this[$meta] = meta;
 
     // attach tags
-    this[$tags] = cause instanceof Xception ? [...cause[$tags], ...tags] : tags;
+    this[$tags] =
+      cause instanceof Xception
+        ? [...new Set([...cause[$tags], ...tags])]
+        : tags;
   }
 
   /**
