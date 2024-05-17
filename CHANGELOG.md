@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [5.0.0](https://github.com/alvis/xception/compare/v4.1.0...v5.0.0) (2024-05-17)
+
+
+### ✨ Features
+
+* always return an error with xception ([1704ffe](https://github.com/alvis/xception/commit/1704ffecdf7669d885346d14787f510131e107fd))
+
+
+### 🐛 Bug Fixes
+
+* attach original cause in xception ([13055bc](https://github.com/alvis/xception/commit/13055bc748cc54037ab1ccf707ed663a56f233de))
+* merge tags uniquely ([f9f0b61](https://github.com/alvis/xception/commit/f9f0b61559a61d59748a2a494369c5389a0d8495))
+* stringify exception as much as possible ([2f034a2](https://github.com/alvis/xception/commit/2f034a2b12e5c4535df5f518c66abc62f8e6ce93))
+
+
+### Breaking changes
+
+* xception will no longer throw an error with non-error exception
+
+
+
 # [4.1.0](https://github.com/alvis/xception/compare/v4.0.0...v4.1.0) (2024-01-13)
 
 
