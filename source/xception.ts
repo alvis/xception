@@ -35,7 +35,7 @@ export default function xception(
   exception: unknown, // string, error, Xception, { message: string, ...}
   options?: Options,
 ): Xception {
-  const cause = exception;
+  const cause = exception instanceof Xception ? exception.cause : exception;
 
   // when options.factory is provided, it's used to create Xception instances; otherwise, the default constructor is used
   const factory =

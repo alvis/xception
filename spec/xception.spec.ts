@@ -38,6 +38,7 @@ describe('fn:xceptionalize', () => {
       expect(xceptionalizedError.message).toEqual('test');
       expect(xceptionalizedError.stack).toEqual(error.stack);
       expect(xceptionalizedError[$meta]).toEqual({});
+      expect(xceptionalizedError.cause).toEqual(error);
     }
   });
 
@@ -47,13 +48,16 @@ describe('fn:xceptionalize', () => {
     expect(xceptionalizedError.name).toEqual('Xception');
     expect(xceptionalizedError.message).toEqual('test');
     expect(xceptionalizedError[$meta]).toEqual({});
+    expect(xceptionalizedError.cause).toEqual({ message: 'test' });
   });
 
   it('should ignore any xception instance', () => {
-    const xceptionError = new Xception('test');
+    const cause = new Error('test');
+    const xceptionError = new Xception('test', { cause });
     const xceptionalizedError = xception(xceptionError);
 
     expect(xceptionalizedError).toEqual(xceptionError);
+    expect(xceptionalizedError.cause).toEqual(cause);
   });
 
   it('should throw an exception if the input is not a string, an error or an Xception', () => {
