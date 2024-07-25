@@ -21,9 +21,10 @@ import yamlify from 'yamlify-object';
 
 import { jsonify } from '#jsonify';
 import { disassembleStack } from '#stack';
+
 import { $cause, $meta, $namespace, $tags } from './symbols';
 
-import type { Chalk } from 'chalk';
+import type { ChalkInstance } from 'chalk';
 import type { JsonObject, JsonValue } from 'type-fest';
 
 import type { ErrorLike } from '#isErrorLike';
@@ -278,7 +279,7 @@ function renderMeta(
     typeof properties === 'number' ||
     typeof properties === 'string'
   ) {
-    const colorize = YAML_THEME[typeof properties] as Chalk;
+    const colorize = YAML_THEME[typeof properties] as ChalkInstance;
 
     return prefix + PADDING + colorize(properties.toString());
   }
