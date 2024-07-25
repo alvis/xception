@@ -10,20 +10,22 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: enable corepack
+        run: corepack enable
       - name: use node LTS
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm'
+          cache: pnpm
       - name: install code climate reporter
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > /tmp/cc-test-reporter
           chmod +x /tmp/cc-test-reporter
           /tmp/cc-test-reporter before-build
       - name: install dependencies
-        run: npm ci
+        run: pnpm install
       - name: run coverage
-        run: npm run coverage
+        run: pnpm run coverage
         env:
           CI: true
       - name: upload coverage
