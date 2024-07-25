@@ -3,7 +3,7 @@
   "version": "5.0.0",
   "packageManager": "pnpm@9.6.0",
   "engines": {
-    "node": ">=12.0"
+    "node": ">=18.18"
   },
   "description": "Handle exception smart.",
   "keywords": [
@@ -32,13 +32,13 @@
     "name": "Alvis HT Tang",
     "email": "alvis@hilbert.space"
   },
+  "type": "module",
   "main": "lib/index.js",
-  "module": "lib/index.mjs",
+  "module": "lib/index.js",
   "types": "lib/index.d.ts",
   "exports": {
     ".": {
-      "require": "./lib/index.js",
-      "import": "./lib/index.mjs",
+      "import": "./lib/index.js",
       "types": "./lib/index.d.ts"
     },
     "./package.json": "./package.json"
@@ -58,9 +58,9 @@
     "url": "git+https://github.com/alvis/xception.git"
   },
   "devDependencies": {
-    "presetter-preset-hybrid": "^4.4.0",
-    "presetter-preset-strict": "^4.4.0",
-    "presetter": "^4.4.0"
+    "presetter-preset-esm": "^4.7.0",
+    "presetter-preset-strict": "^4.7.0",
+    "presetter": "^4.7.0"
   },
   "dependencies": {
     "chalk": "^4.0.0",

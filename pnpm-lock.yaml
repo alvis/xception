@@ -22,13 +22,13 @@ importers:
         version: 0.6.1
     devDependencies:
       presetter:
-        specifier: ^4.4.0
+        specifier: ^4.7.0
         version: 4.7.2
-      presetter-preset-hybrid:
-        specifier: ^4.4.0
-        version: 4.7.2(presetter-preset-esm@4.7.2(nadgam4g3kk74kogg4ytt424pu))(presetter@4.7.2)
+      presetter-preset-esm:
+        specifier: ^4.7.0
+        version: 4.7.2(nadgam4g3kk74kogg4ytt424pu)
       presetter-preset-strict:
-        specifier: ^4.4.0
+        specifier: ^4.7.0
         version: 4.7.2(eslint-plugin-header@3.1.1(eslint@8.57.0))(eslint-plugin-no-secrets@0.8.9(eslint@8.57.0))(eslint-plugin-sonarjs@0.19.0(eslint@8.57.0))(presetter-preset-esm@4.7.2(nadgam4g3kk74kogg4ytt424pu))
 
 packages:
@@ -2889,12 +2889,6 @@ packages:
       tsconfig-paths: ^4.0.0
       tsx: ^4.7.0
       typescript: '>=4.7.0'
-
-  presetter-preset-hybrid@4.7.2:
-    resolution: {integrity: sha512-a8gvjE9X8hqQyRzh4YQGeJPAg0sJykN64g+SrkpvDF7r7KgOIZOYvAF7ynKRcbesJH3sRN8Gx8KrI4ZK0EEbZQ==}
-    peerDependencies:
-      presetter: 4.7.2
-      presetter-preset-esm: 4.7.2
 
   presetter-preset-strict@4.7.2:
     resolution: {integrity: sha512-QkHuSrevvguh+UkYpJbcQSQxxZa7tlnwkvjdxH78AZEkwmCxhlUvKcPyXdXZHNaYb0XBZo+KaBUG7cVtQH06bg==}
@@ -7201,12 +7195,6 @@ snapshots:
       tsconfig-paths: 4.2.0
       tsx: 4.16.2
       typescript: 5.5.4
-
-  presetter-preset-hybrid@4.7.2(presetter-preset-esm@4.7.2(nadgam4g3kk74kogg4ytt424pu))(presetter@4.7.2):
-    dependencies:
-      presetter: 4.7.2
-      presetter-preset-esm: 4.7.2(nadgam4g3kk74kogg4ytt424pu)
-      presetter-types: 4.7.2
 
   presetter-preset-strict@4.7.2(eslint-plugin-header@3.1.1(eslint@8.57.0))(eslint-plugin-no-secrets@0.8.9(eslint@8.57.0))(eslint-plugin-sonarjs@0.19.0(eslint@8.57.0))(presetter-preset-esm@4.7.2(nadgam4g3kk74kogg4ytt424pu)):
     dependencies:
