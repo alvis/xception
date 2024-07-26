@@ -132,7 +132,7 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should render an error stack with the source', () => {
+  it('should render an error stack with the source in a node js environment', () => {
     const rendered = renderError(
       new MockedError(
         'Error1: message1\n' +

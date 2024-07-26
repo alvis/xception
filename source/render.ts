@@ -13,12 +13,11 @@
  * -------------------------------------------------------------------------
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-
 import chalk from 'chalk';
 import highlight from 'highlight-es';
 import yamlify from 'yamlify-object';
 
+import { importFs } from '#import';
 import { jsonify } from '#jsonify';
 import { disassembleStack } from '#stack';
 
@@ -41,6 +40,8 @@ export interface RenderOptions {
   /** a filter function determining whether a stack should be shown given the file path */
   filter?: (path: string) => boolean;
 }
+
+const { existsSync, readFileSync } = await importFs();
 
 const PADDING = '    ';
 
