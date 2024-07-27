@@ -15,6 +15,8 @@
 
 import { jest } from '@jest/globals';
 
+import { ansi } from './ansi';
+
 jest.unstable_mockModule('node:fs', () => ({
   existsSync(path: string) {
     switch (path) {
@@ -39,12 +41,6 @@ jest.unstable_mockModule('node:fs', () => ({
   },
 }));
 
-const ansiPattern = [
-  '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
-  '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))',
-].join('|');
-const ansiExpression = new RegExp(ansiPattern, 'g');
-
 class MockedError extends Error {
   constructor(stack: string) {
     super();
@@ -64,11 +60,9 @@ describe('fn:renderError', () => {
           '    at entry1 (src1:1:0)\n' +
           '    at entry2 (src2:2:0)',
       ),
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toEqual(
+    expect(rendered).toEqual(
       '[Error1] message1\n' +
         '    at entry1 (src1:1:0)\n' +
         '    at entry2 (src2:2:0)',
@@ -83,11 +77,9 @@ describe('fn:renderError', () => {
           '    at entry2 (src2:2:0)',
       ),
       { showStack: false },
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toEqual('[Error1] message1');
+    expect(rendered).toEqual('[Error1] message1');
   });
 
   it('should render an error stack without node:internal & node_modules by default', () => {
@@ -99,11 +91,9 @@ describe('fn:renderError', () => {
           '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
           '    at entry2 (src2:2:0)',
       ),
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toEqual(
+    expect(rendered).toEqual(
       '[Error1] message1\n' +
         '    at entry1 (src1:1:0)\n' +
         '    at entry2 (src2:2:0)',
@@ -120,11 +110,9 @@ describe('fn:renderError', () => {
           '    at entry2 (src2:2:0)',
       ),
       { filter: (path: string) => !path.includes('node_modules') },
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toEqual(
+    expect(rendered).toEqual(
       '[Error1] message1\n' +
         '    at entry1 (src1:1:0)\n' +
         '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
@@ -140,11 +128,9 @@ describe('fn:renderError', () => {
           '    at entry2 (src2:9:0)',
       ),
       { showSource: true },
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toEqual(
+    expect(rendered).toEqual(
       '[Error1] message1\n' +
         '    at entry1 (src1:1:0)\n' +
         '\n' +
@@ -166,11 +152,9 @@ describe('fn:renderError', () => {
           '    at entry2 (absent:2:0)',
       ),
       { showSource: true },
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toEqual(
+    expect(rendered).toEqual(
       '[Error1] message1\n' +
         '    at entry1 (absent:1:0)\n' +
         '    at entry2 (absent:2:0)',
@@ -182,11 +166,9 @@ describe('fn:renderError', () => {
       new Xception('message1', {
         meta: { name: 'xception' },
       }),
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toContain(
+    expect(rendered).toContain(
       '[Xception] message1\n' +
         '\n' +
         '    METADATA\n' +
@@ -203,11 +185,9 @@ describe('fn:renderError', () => {
         tags: ['tag1', 'tag2'],
         meta: { name: 'xception' },
       }),
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toContain(
+    expect(rendered).toContain(
       '[Xception] message\n' +
         '\n' +
         '    xception tag1 tag2\n' +
@@ -224,12 +204,10 @@ describe('fn:renderError', () => {
       new Xception('message1', {
         cause: new Xception('message2'),
       }),
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toContain('[Xception] message1\n' + '    at');
-    expect(plain).toContain('[Xception] message2\n' + '      at');
+    expect(rendered).toContain('[Xception] message1\n' + '    at');
+    expect(rendered).toContain('[Xception] message2\n' + '      at');
   });
 
   it('should render a non-error cause', () => {
@@ -237,11 +215,9 @@ describe('fn:renderError', () => {
       new Xception('message', {
         cause: 'something went wrong',
       }),
-    );
+    ).replace(ansi, '');
 
-    const plain = rendered.replace(ansiExpression, '');
-
-    expect(plain).toContain('[Xception] message\n');
-    expect(plain).toContain('CAUSE\n' + '    something went wrong');
+    expect(rendered).toContain('[Xception] message\n');
+    expect(rendered).toContain('CAUSE\n' + '    something went wrong');
   });
 });

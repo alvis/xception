@@ -16,6 +16,8 @@
 import { Xception } from '#base';
 import { $cause, $meta, $namespace, $tags } from '#symbols';
 
+import { ansi } from './ansi';
+
 class NewError extends Xception {
   constructor(options?: { cause?: unknown }) {
     super('new error', { ...options, tags: ['new'] });
@@ -110,7 +112,7 @@ describe('cl:Xception', () => {
 
   describe('render', () => {
     it('should render the error', () => {
-      const rendered = extendedError.render();
+      const rendered = extendedError.render().replace(ansi, '');
 
       expect(rendered).toContain('[Xception] extended');
       expect(rendered).toContain('at');
