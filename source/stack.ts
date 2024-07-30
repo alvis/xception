@@ -29,8 +29,10 @@ export interface StackLocationBlock {
 
 export type StackBlock = StackDescriptionBlock | StackLocationBlock;
 
+const SECOND_PART_START = 6;
+const THIRD_PART_START = 10;
 const stackLineExpression =
-  /(\s*at (.+) \((.+):([0-9]+):([0-9]+)\))|(^(\w+):\s*([\w\W]*?)(\s*\n\s+))/gm;
+  /(\s*at (.+) \((.+):([0-9]+):([0-9]+)\))|(\s*at (.+):([0-9]+):([0-9]+))|(^(\w+):\s*([\w\W]*?)(\s*\n\s+))/gm;
 
 /**
  * parse a stack into its components
@@ -40,21 +42,32 @@ const stackLineExpression =
 export function disassembleStack(stack: string): StackBlock[] {
   const matches = [...stack.matchAll(stackLineExpression)];
 
-  return matches.map(([, , entry, path, line, column, , name, message]) => {
-    if (entry && path && line && column) {
+  return matches.map((parts) => {
+    const [, entry1, path1, line1, column1] = parts.slice(1, SECOND_PART_START);
+    const [, path2, line2, column2] = parts.slice(
+      SECOND_PART_START,
+      THIRD_PART_START,
+    );
+    const [, name, message] = parts.slice(THIRD_PART_START);
+
+    if (entry1 && path1 && line1 && column1) {
       return {
         type: 'location',
-        entry,
-        path,
-        line: parseInt(line),
-        column: parseInt(column),
+        entry: entry1,
+        path: path1,
+        line: parseInt(line1),
+        column: parseInt(column1),
+      } as StackLocationBlock;
+    } else if (path2 && line2 && column2) {
+      return {
+        type: 'location',
+        entry: '',
+        path: path2,
+        line: parseInt(line2),
+        column: parseInt(column2),
       } as StackLocationBlock;
     } else {
-      return {
-        type: 'description',
-        name,
-        message,
-      } as StackDescriptionBlock;
+      return { type: 'description', name, message } as StackDescriptionBlock;
     }
   });
 }
@@ -68,7 +81,9 @@ export function assembleStack(stacks: StackBlock[]): string {
   return stacks
     .map((stack) => {
       if (stack.type === 'location') {
-        return `    at ${stack.entry} (${stack.path}:${stack.line}:${stack.column})`;
+        return stack.entry
+          ? `    at ${stack.entry} (${stack.path}:${stack.line}:${stack.column})`
+          : `    at ${stack.path}:${stack.line}:${stack.column}`;
       } else {
         return `${stack.name}: ${stack.message}`;
       }

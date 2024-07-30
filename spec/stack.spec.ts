@@ -18,6 +18,9 @@ import { assembleStack, disassembleStack } from '#stack';
 import type { StackBlock } from '#stack';
 
 const stack =
+  'Error0: message0\n' +
+  '    at /src0:0:0\n' +
+  '    at file:///src1:1:1\n' +
   'Error1: message1\n' +
   '    at entry1 (src1:1:0)\n' +
   '    at entry2 (src2:2:0)\n' +
@@ -26,6 +29,25 @@ const stack =
   '    at entry4 (src4:4:0)';
 
 const components: StackBlock[] = [
+  {
+    type: 'description',
+    name: 'Error0',
+    message: 'message0',
+  },
+  {
+    type: 'location',
+    entry: '',
+    path: '/src0',
+    line: 0,
+    column: 0,
+  },
+  {
+    type: 'location',
+    entry: '',
+    path: 'file:///src1',
+    line: 1,
+    column: 1,
+  },
   {
     type: 'description',
     name: 'Error1',
