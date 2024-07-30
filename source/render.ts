@@ -304,12 +304,14 @@ function renderSource(
   const { path, line } = block;
   const { indent } = options;
 
+  const normalizedPath = path.replace(/^file:\/\//, '');
+
   // no source frame if the source is missing
-  if (!existsSync(path)) {
+  if (!existsSync(normalizedPath)) {
     return '';
   }
 
-  const content = readFileSync(path).toString();
+  const content = readFileSync(normalizedPath).toString();
   const highlighted = highlight(content, CODE_THEME);
   const lines = highlighted.split(/[\r\n]/);
   const base = Math.max(line - SPREAD - 1, 0);
