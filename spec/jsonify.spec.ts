@@ -12,6 +12,8 @@
  * -------------------------------------------------------------------------
  */
 
+import { describe, expect, it } from 'vitest';
+
 import { jsonify } from '#jsonify';
 
 describe('fn:jsonify', () => {

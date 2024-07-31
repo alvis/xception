@@ -13,6 +13,8 @@
  * -------------------------------------------------------------------------
  */
 
+import { describe, expect, it } from 'vitest';
+
 import { Xception } from '#base';
 import { $cause, $meta, $namespace, $tags } from '#symbols';
 

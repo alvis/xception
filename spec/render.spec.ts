@@ -13,32 +13,36 @@
  * -------------------------------------------------------------------------
  */
 
-import { jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ansi } from './ansi';
 
-jest.unstable_mockModule('node:fs', () => ({
-  existsSync(path: string) {
-    switch (path) {
-      case 'src1':
-      case 'src2':
-        return true;
-      default:
-        return false;
-    }
-  },
-  readFileSync(path: string) {
-    switch (path) {
-      case 'src1':
-      case 'src2':
-        return new Array(20)
-          .fill(undefined)
-          .map((_, index) => `line ${index + 1}`)
-          .join('\n');
-      default:
-        throw new Error(`unrecognized path: ${path}`);
-    }
-  },
+vi.mock('#import', () => ({
+  importFs: async () => ({
+    existsSync(path: string) {
+      switch (path) {
+        case 'src1':
+        case 'src2':
+          return true;
+        default:
+          return false;
+      }
+    },
+    readFileSync(path: string) {
+      console.log('reading: ', path);
+
+      switch (path) {
+        case 'src1':
+        case 'src2':
+          return new Array(20)
+            .fill(undefined)
+            .map((_, index) => `line ${index + 1}`)
+            .join('\n');
+        default:
+          throw new Error(`unrecognized path: ${path}`);
+      }
+    },
+  }),
 }));
 
 class MockedError extends Error {
@@ -50,8 +54,13 @@ class MockedError extends Error {
     this.stack = stack;
   }
 }
-const { Xception } = await import('#base');
-const { renderError } = await import('#render');
+
+import { Xception } from '#base';
+import { renderError } from '#render';
+
+// const { Xception } = await import('#base');
+// const { renderError } = await import('#render');
+
 describe('fn:renderError', () => {
   it('should render an error stack with its own format', () => {
     const rendered = renderError(

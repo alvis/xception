@@ -13,6 +13,8 @@
  * -------------------------------------------------------------------------
  */
 
+import { describe, expect, it } from 'vitest';
+
 import { Xception } from '#base';
 
 import { $meta } from '#symbols';
@@ -65,5 +67,34 @@ describe('fn:xceptionalize', () => {
 
     expect(xceptionalizedError.message).toEqual(`non-error: 1`);
     expect(xceptionalizedError.cause).toEqual(1);
+  });
+
+  it('should change the namespace of an Xception', () => {
+    const original = new Xception('message', { namespace: 'original' });
+    const xceptionalizedError = xception(original, { namespace: 'new' });
+
+    expect(xceptionalizedError.namespace).toEqual('new');
+  });
+
+  it('should merge metadata of an Xception', () => {
+    const original = new Xception('message', {
+      meta: { bar: 'bar', foo: 'foo' },
+    });
+    const xceptionalizedError = xception(original, {
+      meta: { bar: 'new', new: 'new' },
+    });
+
+    expect(xceptionalizedError.meta).toEqual({
+      bar: 'new',
+      foo: 'foo',
+      new: 'new',
+    });
+  });
+
+  it('should merge tags of an Xception', () => {
+    const original = new Xception('message', { tags: ['foo', 'bar'] });
+    const xceptionalizedError = xception(original, { tags: ['new', 'bar'] });
+
+    expect(xceptionalizedError.tags).toEqual(['foo', 'bar', 'new']);
   });
 });

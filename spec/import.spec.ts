@@ -13,19 +13,17 @@
  * -------------------------------------------------------------------------
  */
 
-import { jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
-const importNodeFs = jest.fn(() => ({
-  existsSync: (path: string) => true,
-  readFileSync: (path: string) => Buffer.from(''),
+import { importFs } from '#import';
+
+const { importNodeFs } = vi.hoisted(() => ({
+  importNodeFs: vi.fn(() => ({
+    existsSync: (path: string) => true,
+    readFileSync: (path: string) => Buffer.from(''),
+  })),
 }));
-jest.unstable_mockModule('node:fs', importNodeFs);
-
-const { importFs } = await import('#import');
-
-beforeEach(() => {
-  jest.clearAllMocks();
-});
+vi.mock('node:fs', importNodeFs);
 
 describe('importFs', () => {
   it('should import node:fs under a node environment', async () => {
@@ -35,8 +33,7 @@ describe('importFs', () => {
   });
 
   it('should not import node:fs under a browser environment', async () => {
-    const originalProcess = globalThis;
-    (globalThis.process as any) = undefined;
+    vi.stubGlobal('process', { versions: {} });
 
     const { existsSync, readFileSync } = await importFs();
 
@@ -44,7 +41,5 @@ describe('importFs', () => {
 
     expect(existsSync('/')).toEqual(false);
     expect(readFileSync('/')).toEqual(Buffer.from(''));
-
-    (globalThis.process as any) = originalProcess;
   });
 });

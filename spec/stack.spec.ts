@@ -13,6 +13,8 @@
  * -------------------------------------------------------------------------
  */
 
+import { describe, expect, it } from 'vitest';
+
 import { assembleStack, disassembleStack } from '#stack';
 
 import type { StackBlock } from '#stack';

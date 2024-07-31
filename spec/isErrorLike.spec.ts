@@ -13,6 +13,8 @@
  * -------------------------------------------------------------------------
  */
 
+import { describe, expect, it } from 'vitest';
+
 import { isErrorLike } from '#isErrorLike';
 
 describe('fn:isErrorLike', () => {
