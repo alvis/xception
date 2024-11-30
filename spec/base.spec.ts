@@ -18,8 +18,6 @@ import { describe, expect, it } from 'vitest';
 import { Xception } from '#base';
 import { $cause, $meta, $namespace, $tags } from '#symbols';
 
-import { ansi } from './ansi';
-
 class NewError extends Xception {
   constructor(options?: { cause?: unknown }) {
     super('new error', { ...options, tags: ['new'] });
@@ -109,15 +107,6 @@ describe('cl:Xception', () => {
 
     it('should return the tags', () => {
       expect(extendedError.tags).toEqual(['extended']);
-    });
-  });
-
-  describe('render', () => {
-    it('should render the error', () => {
-      const rendered = extendedError.render().replace(ansi, '');
-
-      expect(rendered).toContain('[Xception] extended');
-      expect(rendered).toContain('at');
     });
   });
 

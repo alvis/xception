@@ -18,5 +18,4 @@
 export * from './base';
 export { Xception as default } from './base';
 
-export * from './render';
 export { default as xception } from './xception';
