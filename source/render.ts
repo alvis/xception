@@ -17,7 +17,7 @@ import { existsSync, readFileSync } from 'node:fs';
 
 import chalk from 'chalk';
 import highlight from 'highlight-es';
-import yamlify from 'yamlify-object';
+import { stringify } from 'yaml';
 
 import { jsonify } from '#jsonify';
 import { disassembleStack } from '#stack';
@@ -32,8 +32,8 @@ import type { StackLocationBlock } from '#stack';
 
 /** options for rendering an error */
 export interface RenderOptions {
-  /** indent for each line */
-  indent?: string;
+  /** indent spacing for each line */
+  indent?: number;
   /** indicate whether a source frame should be shown */
   showSource?: boolean;
   /** indicate whether the full stack should be shown */
@@ -42,7 +42,8 @@ export interface RenderOptions {
   filter?: (path: string) => boolean;
 }
 
-const PADDING = '    ';
+const INDENT = 2;
+const PADDING = 4;
 
 /** default number of lines from the targeted source line to be displayed */
 const SPREAD = 4;
@@ -79,7 +80,7 @@ const EXCESSIVE_NEWLINE = /(\n\s*){2,}\n/g;
  */
 export function renderError(error: Error, options?: RenderOptions): string {
   const {
-    indent = '',
+    indent = 0,
     showSource = false,
     showStack = true,
     filter = (path: string) =>
@@ -105,9 +106,9 @@ export function renderError(error: Error, options?: RenderOptions): string {
   if (error[$cause] instanceof Error) {
     renderedBlocks.push(
       chalk.grey(
-        `${indent}${PADDING}... further lines matching cause stack trace below ...\n`,
+        `${' '.repeat(indent + PADDING)}... further lines matching cause stack trace below ...\n`,
       ),
-      renderError(error[$cause], { ...options, indent: '  ' }),
+      renderError(error[$cause], { ...options, indent: indent + INDENT }),
     );
   }
 
@@ -163,12 +164,12 @@ function getUniqueStack(error: Error): string {
  * render associations of an error
  * @param error the related error
  * @param options optional parameters
- * @param options.indent indent for each line
+ * @param options.indent indent level for each line
  * @returns a rendered string to print
  */
 function renderAssociations(
   error: ErrorLike,
-  options: { indent: string },
+  options: { indent: number },
 ): string | null {
   const { indent } = options;
 
@@ -177,38 +178,41 @@ function renderAssociations(
 
   const blocks = [
     ...(typeof namespace === 'string'
-      ? [indent + chalk.blue.underline(namespace)]
+      ? [' '.repeat(indent) + chalk.blue.underline(namespace)]
       : []),
     ...(Array.isArray(tags)
       ? tags
           .filter((tag): tag is string => typeof tag === 'string')
-          .map((tag) => indent + chalk.cyan.bold(tag))
+          .map((tag) => ' '.repeat(indent) + chalk.cyan.bold(tag))
       : []),
   ];
 
-  return blocks.length ? `\n${indent}${PADDING}` + blocks.join(' ') : null;
+  return blocks.length
+    ? `\n${' '.repeat(indent + PADDING)}` + blocks.join(' ')
+    : null;
 }
 
 /**
  * render a description line
  * @param error error the related error
  * @param options optional parameters
- * @param options.indent indent for each line
+ * @param options.indent indent level for each line
  * @returns a rendered string to print
  */
 function renderDescription(
   error: ErrorLike,
-  options: { indent: string },
+  options: { indent: number },
 ): string {
   const { indent } = options;
 
   const description =
-    indent + chalk.red(`[${chalk.bold(error.name)}] ${error.message}`);
+    ' '.repeat(indent) +
+    chalk.red(`[${chalk.bold(error.name)}] ${error.message}`);
 
   const association = renderAssociations(error, options);
   const meta = renderMeta(getErrorMeta(error), {
     indent,
-    prefix: `\n${indent}${PADDING}${chalk.white.underline('METADATA')}\n`,
+    prefix: `\n${' '.repeat(indent + PADDING)}${chalk.white.underline('METADATA')}\n`,
     postfix: '\n',
   });
   const cause =
@@ -216,7 +220,7 @@ function renderDescription(
     error[$cause] && !(error[$cause] instanceof Error)
       ? renderMeta(jsonify(error[$cause]), {
           indent,
-          prefix: `\n${indent}${PADDING}${chalk.white.underline('CAUSE')}\n`,
+          prefix: `\n${' '.repeat(indent + PADDING)}${chalk.white.underline('CAUSE')}\n`,
           postfix: '\n',
         })
       : null;
@@ -230,13 +234,13 @@ function renderDescription(
  * render a location line
  * @param block a stack block about a location
  * @param options optional parameters
- * @param options.indent indent for each line
+ * @param options.indent indent level for each line
  * @param options.showSource indicate whether a source frame should be shown
  * @returns a rendered string to print
  */
 export function renderLocation(
   block: StackLocationBlock,
-  options: { indent: string; showSource: boolean },
+  options: { indent: number; showSource: boolean },
 ): string {
   const { entry, path, line, column } = block;
   const { indent, showSource } = options;
@@ -246,7 +250,7 @@ export function renderLocation(
   const sourceFrame = showSource ? renderSource(block, { indent }) : '';
 
   return (
-    `${indent}${PADDING}at ${chalk.grey.bold(entry)} (${chalk.grey.underline(
+    `${' '.repeat(indent + PADDING)}at ${chalk.grey.bold(entry)} (${chalk.grey.underline(
       location,
     )})` + (sourceFrame ? '\n' + sourceFrame : '')
   );
@@ -256,24 +260,27 @@ export function renderLocation(
  * render metadata in an error
  * @param properties additional properties of an error
  * @param options optional parameters
- * @param options.indent indent for each line
+ * @param options.indent indent level for each line
  * @param options.prefix the prefix to be added before the rendered string
  * @param options.postfix the postfix to be added after the rendered string
  * @returns a rendered string to print
  */
 function renderMeta(
   properties: JsonValue,
-  options: { indent: string; prefix: string; postfix: string },
+  options: { indent: number; prefix: string; postfix: string },
 ): string | null {
   const { indent, prefix, postfix } = options;
 
   if (properties instanceof Object && Object.keys(properties).length) {
-    return yamlify(properties, {
-      indent: indent + PADDING,
-      prefix,
-      postfix,
-      colors: YAML_THEME,
-    });
+    const representation =
+      ' '.repeat(indent + PADDING) +
+      stringify(properties, {
+        blockQuote: false,
+      })
+        .split('\n')
+        .join('\n' + ' '.repeat(indent + PADDING));
+
+    return `${prefix}${representation}${postfix}`;
   } else if (
     typeof properties === 'boolean' ||
     typeof properties === 'number' ||
@@ -281,7 +288,7 @@ function renderMeta(
   ) {
     const colorize = YAML_THEME[typeof properties] as ChalkInstance;
 
-    return prefix + PADDING + colorize(properties.toString());
+    return prefix + ' '.repeat(PADDING) + colorize(properties.toString());
   }
 
   return null;
@@ -291,13 +298,13 @@ function renderMeta(
  * render a source frame
  * @param block a location block
  * @param options options for rendering
- * @param options.indent indent for each line
+ * @param options.indent indent level for each line
  * @returns a rendered string to print
  */
 function renderSource(
   block: StackLocationBlock,
   options: {
-    indent: string;
+    indent: number;
   },
 ): string {
   const { path, line } = block;
@@ -325,7 +332,7 @@ function renderSource(
       const prefix = isTarget ? '>' : ' ';
       const gutter = ` ${prefix} ${formattedLine} `;
 
-      return `${indent}${isTarget ? chalk.bgRed(gutter) : gutter}| ${source}`;
+      return `${' '.repeat(indent)}${isTarget ? chalk.bgRed(gutter) : gutter}| ${source}`;
     })
     .join('\n');
 

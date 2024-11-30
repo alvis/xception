@@ -181,12 +181,12 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should render associations', () => {
+  it('should render associations', async () => {
     const rendered = renderError(
       new Xception('message', {
         namespace: 'xception',
         tags: ['tag1', 'tag2'],
-        meta: { name: 'xception' },
+        meta: { name: 'xception', source: 'test' },
       }),
     ).replace(ansi, '');
 
@@ -197,6 +197,7 @@ describe('fn:renderError', () => {
         '\n' +
         '    METADATA\n' +
         '    name: xception\n' +
+        '    source: test\n' +
         '\n' +
         '    at',
     );

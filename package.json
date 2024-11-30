@@ -71,6 +71,6 @@
     "chalk": "^5.3.0",
     "highlight-es": "^1.0.0",
     "type-fest": "^4.23.0",
-    "yamlify-object": "^0.6.0"
+    "yaml": "^2.6.0"
   }
 }

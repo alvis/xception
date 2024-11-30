@@ -17,9 +17,9 @@ importers:
       type-fest:
         specifier: ^4.23.0
         version: 4.23.0
-      yamlify-object:
-        specifier: ^0.6.0
-        version: 0.6.1
+      yaml:
+        specifier: ^2.6.0
+        version: 2.6.1
     devDependencies:
       '@types/node':
         specifier: ^18.8.0
@@ -1211,6 +1211,7 @@ packages:
   eslint@8.57.0:
     resolution: {integrity: sha512-dZ6+mexnaTIbSBZWgou51U6OmzIhYM2VcNdtiTtI7qPNZm35Akpr0f6vtw3w1Kmn5PYo+tZVfh13WrhpS6oLqQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@10.1.0:
@@ -3108,9 +3109,10 @@ packages:
     engines: {node: '>= 14'}
     hasBin: true
 
-  yamlify-object@0.6.1:
-    resolution: {integrity: sha512-ZLk2nxgzIGC5v78DGe3P7ebzfpt+lOkm4qzTv3CsWSwG926QLEcmyEIMU36JFyka4xWBlNRVMj5UtxIoWweY7Q==}
-    engines: {node: '>=4.0.0'}
+  yaml@2.6.1:
+    resolution: {integrity: sha512-7r0XPzioN/Q9kXBro/XPnA6kznR73DHq+GXh5ON7ZozRO6aMjbmiBuKste2wslTFkC5d1dw0GooOCepZXJ2SAg==}
+    engines: {node: '>= 14'}
+    hasBin: true
 
   yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
@@ -6500,7 +6502,7 @@ snapshots:
 
   yaml@2.4.5: {}
 
-  yamlify-object@0.6.1: {}
+  yaml@2.6.1: {}
 
   yargs-parser@20.2.9: {}
 
