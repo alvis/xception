@@ -29,10 +29,10 @@ export interface StackLocationBlock {
 
 export type StackBlock = StackDescriptionBlock | StackLocationBlock;
 
-const LOCATION_START = 6;
-const DESCRIPTION_START = 10;
-const stackLineExpression =
-  /(\s*at (.+) \((.+):([0-9]+):([0-9]+)\))|(\s*at (.+):([0-9]+):([0-9]+))|(^(\w+):\s*([\w\W]*?)(\s*\n\s+))/gm;
+const locationWithEntryRegex1 = /^\s*at (\w+) \((.+):(\d+):(\d+)\)$/; // mostly node
+const locationWithEntryRegex2 = /^\s*(\w+)@(.+):(\d+):(\d+)$/; // mostly web
+const locationWithoutEntryRegex = /^\s*at (.+):(\d+):(\d+)$/; // mostly node
+const descriptionRegex = /^(\w+):\s*(\w*)$/;
 
 /**
  * parse a stack into its components
@@ -40,36 +40,48 @@ const stackLineExpression =
  * @returns a list of error and stack information
  */
 export function disassembleStack(stack: string): StackBlock[] {
-  const matches = [...stack.matchAll(stackLineExpression)];
+  const lines = stack.split('\n');
 
-  return matches.map((parts) => {
-    const [, entry1, path1, line1, column1] = parts.slice(1, LOCATION_START);
-    const [, path2, line2, column2] = parts.slice(
-      LOCATION_START,
-      DESCRIPTION_START,
-    );
-    const [, name, message] = parts.slice(DESCRIPTION_START);
+  return lines
+    .map((line) => {
+      const locationWithEntryMatch =
+        locationWithEntryRegex1.exec(line) ??
+        locationWithEntryRegex2.exec(line);
+      if (locationWithEntryMatch) {
+        const [, entry, path, line, column] = locationWithEntryMatch;
 
-    if (entry1 && path1 && line1 && column1) {
-      return {
-        type: 'location',
-        entry: entry1,
-        path: path1,
-        line: parseInt(line1),
-        column: parseInt(column1),
-      } as StackLocationBlock;
-    } else if (path2 && line2 && column2) {
-      return {
-        type: 'location',
-        entry: '',
-        path: path2,
-        line: parseInt(line2),
-        column: parseInt(column2),
-      } as StackLocationBlock;
-    } else {
-      return { type: 'description', name, message } as StackDescriptionBlock;
-    }
-  });
+        return {
+          type: 'location',
+          entry,
+          path,
+          line: parseInt(line),
+          column: parseInt(column),
+        } as StackLocationBlock;
+      }
+
+      const locationWithoutEntryMatch = locationWithoutEntryRegex.exec(line);
+      if (locationWithoutEntryMatch) {
+        const [, path, line, column] = locationWithoutEntryMatch;
+
+        return {
+          type: 'location',
+          entry: '',
+          path,
+          line: parseInt(line),
+          column: parseInt(column),
+        } as StackLocationBlock;
+      }
+
+      const descriptionMatch = descriptionRegex.exec(line);
+      if (descriptionMatch) {
+        const [, name, message] = descriptionMatch;
+
+        return { type: 'description', name, message } as StackDescriptionBlock;
+      }
+
+      return null;
+    })
+    .filter((block): block is StackBlock => block !== null);
 }
 
 /**

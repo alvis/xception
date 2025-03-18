@@ -91,13 +91,17 @@ const components: StackBlock[] = [
 ];
 
 describe('fn:assembleStack', () => {
-  it('should reassemble a stack content ', () => {
+  it('should reassemble a stack content', () => {
     expect(assembleStack(components)).toEqual(stack);
   });
 });
 
 describe('fn:disassembleStack', () => {
-  it('should disassemble a stack content ', () => {
+  it('should disassemble a stack content', () => {
     expect(disassembleStack(stack)).toEqual(components);
+  });
+
+  it('should disassemble a stack content with unknown lines ignored', () => {
+    expect(disassembleStack(stack + `\nunrecognized line`)).toEqual(components);
   });
 });
