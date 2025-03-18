@@ -29,8 +29,8 @@ export interface StackLocationBlock {
 
 export type StackBlock = StackDescriptionBlock | StackLocationBlock;
 
-const SECOND_PART_START = 6;
-const THIRD_PART_START = 10;
+const LOCATION_START = 6;
+const DESCRIPTION_START = 10;
 const stackLineExpression =
   /(\s*at (.+) \((.+):([0-9]+):([0-9]+)\))|(\s*at (.+):([0-9]+):([0-9]+))|(^(\w+):\s*([\w\W]*?)(\s*\n\s+))/gm;
 
@@ -43,12 +43,12 @@ export function disassembleStack(stack: string): StackBlock[] {
   const matches = [...stack.matchAll(stackLineExpression)];
 
   return matches.map((parts) => {
-    const [, entry1, path1, line1, column1] = parts.slice(1, SECOND_PART_START);
+    const [, entry1, path1, line1, column1] = parts.slice(1, LOCATION_START);
     const [, path2, line2, column2] = parts.slice(
-      SECOND_PART_START,
-      THIRD_PART_START,
+      LOCATION_START,
+      DESCRIPTION_START,
     );
-    const [, name, message] = parts.slice(THIRD_PART_START);
+    const [, name, message] = parts.slice(DESCRIPTION_START);
 
     if (entry1 && path1 && line1 && column1) {
       return {
