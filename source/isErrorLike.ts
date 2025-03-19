@@ -31,12 +31,19 @@ export type ErrorLike =
  * @returns whether the exception is an error-like object
  */
 export function isErrorLike(exception: unknown): exception is ErrorLike {
-  return (
-    typeof exception === 'object' &&
-    exception !== null &&
-    typeof exception['message'] === 'string' &&
-    (typeof exception['name'] === 'string' ||
-      exception['name'] === undefined) &&
-    (typeof exception['stack'] === 'string' || exception['stack'] === undefined)
-  );
+  const isObject = typeof exception === 'object' && exception !== null;
+
+  const hasMessage =
+    isObject &&
+    typeof (exception as Record<string, unknown>).message === 'string';
+  const hasName =
+    isObject &&
+    (!('name' in exception) ||
+      typeof (exception as Record<string, unknown>).name === 'string');
+  const hasStack =
+    isObject &&
+    (!('stack' in exception) ||
+      typeof (exception as Record<string, unknown>).stack === 'string');
+
+  return isObject && hasMessage && hasName && hasStack;
 }
