@@ -82,7 +82,7 @@ describe('fn:jsonify', () => {
 
   it('should take care of a simple circular reference in an object', () => {
     const value = { foo: 'bar' };
-    value['self'] = value;
+    (value as Record<string, unknown>).self = value;
 
     expect(jsonify(value)).toEqual({
       foo: 'bar',

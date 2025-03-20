@@ -113,7 +113,7 @@ function jsonifyObjectWithPath(
   // mark the object as processed
   processed.set(value, paths.join('.'));
 
-  const toJSON: unknown = value['toJSON'];
+  const toJSON: unknown = (value as Record<string, unknown>).toJSON;
 
   if (typeof toJSON === 'function') {
     // use the toJSON method if available
