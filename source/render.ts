@@ -13,13 +13,12 @@
  * -------------------------------------------------------------------------
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-
 import chalk from 'chalk';
 import highlight from 'highlight-es';
 import { stringify } from 'yaml';
 
 import { jsonify } from '#jsonify';
+import { createSourceResolver } from '#source';
 import { disassembleStack } from '#stack';
 
 import { $cause, $meta, $namespace, $tags } from './symbols';
@@ -78,7 +77,10 @@ const EXCESSIVE_NEWLINE = /(\n\s*){2,}\n/g;
  * @param options optional parameters
  * @returns a string representation of the error
  */
-export function renderError(error: Error, options?: RenderOptions): string {
+export async function renderError(
+  error: Error,
+  options?: RenderOptions,
+): Promise<string> {
   const {
     indent = 0,
     showSource = false,
@@ -91,14 +93,19 @@ export function renderError(error: Error, options?: RenderOptions): string {
 
   const locations = disassembleStack(stack).filter(
     (block): block is StackLocationBlock =>
-      showStack && block.type === 'location' && filter(block.path),
+      showStack && block.type === 'location' && filter(block.location),
   );
 
   const renderedBlocks: string[] = [
     renderDescription(error, { indent }),
-    ...locations.map((block, index) =>
-      renderLocation(block, { indent, showSource: showSource && index === 0 }),
-    ),
+    ...(await Promise.all(
+      locations.map(async (block, index) =>
+        renderLocation(block, {
+          indent,
+          showSource: showSource && index === 0,
+        }),
+      ),
+    )),
   ];
 
   // ('... 6 lines matching cause stack trace ...');
@@ -108,7 +115,7 @@ export function renderError(error: Error, options?: RenderOptions): string {
       chalk.grey(
         `${' '.repeat(indent + PADDING)}... further lines matching cause stack trace below ...\n`,
       ),
-      renderError(error[$cause], { ...options, indent: indent + INDENT }),
+      await renderError(error[$cause], { ...options, indent: indent + INDENT }),
     );
   }
 
@@ -238,20 +245,26 @@ function renderDescription(
  * @param options.showSource indicate whether a source frame should be shown
  * @returns a rendered string to print
  */
-export function renderLocation(
+export async function renderLocation(
   block: StackLocationBlock,
   options: { indent: number; showSource: boolean },
-): string {
-  const { entry, path, line, column } = block;
+): Promise<string> {
+  const { entry, location } = block;
   const { indent, showSource } = options;
 
-  const location = `${path}:${line}:${column}`;
+  // get original source, line and column if a source map is embedded in the compiled source
+  // fallback to the compiled source detail if no source map is found
+  const resolve = await createSourceResolver(location);
+  const { identifier, source, line, column } = resolve(block);
 
-  const sourceFrame = showSource ? renderSource(block, { indent }) : '';
+  const sourceFrame =
+    showSource && source
+      ? await renderSource({ source, line }, { indent })
+      : null;
 
   return (
     `${' '.repeat(indent + PADDING)}at ${chalk.grey.bold(entry)} (${chalk.grey.underline(
-      location,
+      `${identifier}:${line}:${column}`,
     )})` + (sourceFrame ? '\n' + sourceFrame : '')
   );
 }
@@ -296,30 +309,24 @@ function renderMeta(
 
 /**
  * render a source frame
- * @param block a location block
- * @param options options for rendering
+ * @param params the source and line number
+ * @param params.source the source content
+ * @param params.line the line number to be highlighted
+ * @param options optional parameters
  * @param options.indent indent level for each line
  * @returns a rendered string to print
  */
-function renderSource(
-  block: StackLocationBlock,
+async function renderSource(
+  params: { source: string; line: number },
   options: {
     indent: number;
   },
-): string {
-  const { path, line } = block;
+): Promise<string | null> {
   const { indent } = options;
 
-  const normalizedPath = path.replace(/^file:\/\//, '');
-
-  // no source frame if the source is missing
-  if (!existsSync(normalizedPath)) {
-    return '';
-  }
-
-  const content = readFileSync(normalizedPath).toString();
-  const highlighted = highlight(content, CODE_THEME);
-  const lines = highlighted.split(/[\r\n]/);
+  const { source, line } = params;
+  const highlighted = highlight(source, CODE_THEME);
+  const lines = highlighted.split(/\r?\n/);
   const base = Math.max(line - SPREAD - 1, 0);
   const displayLines = lines.slice(base, line + SPREAD);
   const lineNumberWidth = (line + SPREAD).toString().length;

@@ -30,8 +30,6 @@ vi.mock('node:fs', () => ({
     }
   },
   readFileSync(path: string) {
-    console.log('reading: ', path);
-
     switch (path) {
       case 'src1':
       case 'src2':
@@ -56,13 +54,15 @@ class MockedError extends Error {
 }
 
 describe('fn:renderError', () => {
-  it('should render an error stack with its own format', () => {
-    const rendered = renderError(
-      new MockedError(
-        'Error1: message1\n' +
-          '    at entry1 (src1:1:0)\n' +
-          '    at entry2 (src2:2:0)',
-      ),
+  it('should render an error stack with its own format', async () => {
+    const rendered = (
+      await renderError(
+        new MockedError(
+          'Error1: message1\n' +
+            '    at entry1 (src1:1:0)\n' +
+            '    at entry2 (src2:2:0)',
+        ),
+      )
     ).replace(ansi, '');
 
     expect(rendered).toEqual(
@@ -72,28 +72,32 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should skip the stack if instructed', () => {
-    const rendered = renderError(
-      new MockedError(
-        'Error1: message1\n' +
-          '    at entry1 (src1:1:0)\n' +
-          '    at entry2 (src2:2:0)',
-      ),
-      { showStack: false },
+  it('should skip the stack if instructed', async () => {
+    const rendered = (
+      await renderError(
+        new MockedError(
+          'Error1: message1\n' +
+            '    at entry1 (src1:1:0)\n' +
+            '    at entry2 (src2:2:0)',
+        ),
+        { showStack: false },
+      )
     ).replace(ansi, '');
 
     expect(rendered).toEqual('[Error1] message1');
   });
 
-  it('should render an error stack without node:internal & node_modules by default', () => {
-    const rendered = renderError(
-      new MockedError(
-        'Error1: message1\n' +
-          '    at entry1 (src1:1:0)\n' +
-          '    at third_party (./node_modules/third_party/src:1:0)\n' +
-          '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
-          '    at entry2 (src2:2:0)',
-      ),
+  it('should render an error stack without node:internal & node_modules by default', async () => {
+    const rendered = (
+      await renderError(
+        new MockedError(
+          'Error1: message1\n' +
+            '    at entry1 (src1:1:0)\n' +
+            '    at third_party (./node_modules/third_party/src:1:0)\n' +
+            '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
+            '    at entry2 (src2:2:0)',
+        ),
+      )
     ).replace(ansi, '');
 
     expect(rendered).toEqual(
@@ -103,16 +107,18 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should render an error stack according to the supplied filter', () => {
-    const rendered = renderError(
-      new MockedError(
-        'Error1: message1\n' +
-          '    at entry1 (src1:1:0)\n' +
-          '    at third_party (./node_modules/third_party/src:1:0)\n' +
-          '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
-          '    at entry2 (src2:2:0)',
-      ),
-      { filter: (path: string) => !path.includes('node_modules') },
+  it('should render an error stack according to the supplied filter', async () => {
+    const rendered = (
+      await renderError(
+        new MockedError(
+          'Error1: message1\n' +
+            '    at entry1 (src1:1:0)\n' +
+            '    at third_party (./node_modules/third_party/src:1:0)\n' +
+            '    at internal (node:internal/modules/cjs/helper:1:0)\n' +
+            '    at entry2 (src2:2:0)',
+        ),
+        { filter: (path: string) => !path.includes('node_modules') },
+      )
     ).replace(ansi, '');
 
     expect(rendered).toEqual(
@@ -123,14 +129,16 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should render an error stack with the source in a node js environment', () => {
-    const rendered = renderError(
-      new MockedError(
-        'Error1: message1\n' +
-          '    at entry1 (src1:1:0)\n' +
-          '    at entry2 (src2:9:0)',
-      ),
-      { showSource: true },
+  it('should render an error stack with the source in a node js environment', async () => {
+    const rendered = (
+      await renderError(
+        new MockedError(
+          'Error1: message1\n' +
+            '    at entry1 (src1:1:0)\n' +
+            '    at entry2 (src2:9:0)',
+        ),
+        { showSource: true },
+      )
     ).replace(ansi, '');
 
     expect(rendered).toEqual(
@@ -147,14 +155,16 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should render an error stack with the source absent', () => {
-    const rendered = renderError(
-      new MockedError(
-        'Error1: message1\n' +
-          '    at entry1 (absent:1:0)\n' +
-          '    at entry2 (absent:2:0)',
-      ),
-      { showSource: true },
+  it('should render an error stack with the source absent', async () => {
+    const rendered = (
+      await renderError(
+        new MockedError(
+          'Error1: message1\n' +
+            '    at entry1 (absent:1:0)\n' +
+            '    at entry2 (absent:2:0)',
+        ),
+        { showSource: true },
+      )
     ).replace(ansi, '');
 
     expect(rendered).toEqual(
@@ -164,11 +174,13 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should render metadata', () => {
-    const rendered = renderError(
-      new Xception('message1', {
-        meta: { name: 'xception' },
-      }),
+  it('should render metadata', async () => {
+    const rendered = (
+      await renderError(
+        new Xception('message1', {
+          meta: { name: 'xception' },
+        }),
+      )
     ).replace(ansi, '');
 
     expect(rendered).toContain(
@@ -182,12 +194,14 @@ describe('fn:renderError', () => {
   });
 
   it('should render associations', async () => {
-    const rendered = renderError(
-      new Xception('message', {
-        namespace: 'xception',
-        tags: ['tag1', 'tag2'],
-        meta: { name: 'xception', source: 'test' },
-      }),
+    const rendered = (
+      await renderError(
+        new Xception('message', {
+          namespace: 'xception',
+          tags: ['tag1', 'tag2'],
+          meta: { name: 'xception', source: 'test' },
+        }),
+      )
     ).replace(ansi, '');
 
     expect(rendered).toContain(
@@ -203,22 +217,26 @@ describe('fn:renderError', () => {
     );
   });
 
-  it('should render a nested error', () => {
-    const rendered = renderError(
-      new Xception('message1', {
-        cause: new Xception('message2'),
-      }),
+  it('should render a nested error', async () => {
+    const rendered = (
+      await renderError(
+        new Xception('message1', {
+          cause: new Xception('message2'),
+        }),
+      )
     ).replace(ansi, '');
 
     expect(rendered).toContain('[Xception] message1\n' + '    at');
     expect(rendered).toContain('[Xception] message2\n' + '      at');
   });
 
-  it('should render a non-error cause', () => {
-    const rendered = renderError(
-      new Xception('message', {
-        cause: 'something went wrong',
-      }),
+  it('should render a non-error cause', async () => {
+    const rendered = (
+      await renderError(
+        new Xception('message', {
+          cause: 'something went wrong',
+        }),
+      )
     ).replace(ansi, '');
 
     expect(rendered).toContain('[Xception] message\n');

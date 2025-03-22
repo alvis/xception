@@ -22,7 +22,7 @@ export interface StackDescriptionBlock {
 export interface StackLocationBlock {
   type: 'location';
   entry: string;
-  path: string;
+  location: string;
   line: number;
   column: number;
 }
@@ -48,25 +48,25 @@ export function disassembleStack(stack: string): StackBlock[] {
         locationWithEntryRegex1.exec(line) ??
         locationWithEntryRegex2.exec(line);
       if (locationWithEntryMatch) {
-        const [, entry, path, line, column] = locationWithEntryMatch;
+        const [, entry, location, line, column] = locationWithEntryMatch;
 
         return {
           type: 'location',
           entry,
-          path,
+          location,
           line: parseInt(line),
           column: parseInt(column),
         } as StackLocationBlock;
       }
 
-      const locationWithoutEntryMatch = locationWithoutEntryRegex.exec(line);
+      const locationWithoutEntryMatch = line.match(locationWithoutEntryRegex);
       if (locationWithoutEntryMatch) {
-        const [, path, line, column] = locationWithoutEntryMatch;
+        const [, location, line, column] = locationWithoutEntryMatch;
 
         return {
           type: 'location',
           entry: '',
-          path,
+          location,
           line: parseInt(line),
           column: parseInt(column),
         } as StackLocationBlock;
@@ -94,8 +94,8 @@ export function assembleStack(stacks: StackBlock[]): string {
     .map((stack) => {
       if (stack.type === 'location') {
         return stack.entry
-          ? `    at ${stack.entry} (${stack.path}:${stack.line}:${stack.column})`
-          : `    at ${stack.path}:${stack.line}:${stack.column}`;
+          ? `    at ${stack.entry} (${stack.location}:${stack.line}:${stack.column})`
+          : `    at ${stack.location}:${stack.line}:${stack.column}`;
       } else {
         return `${stack.name}: ${stack.message}`;
       }
