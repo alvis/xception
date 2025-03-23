@@ -135,4 +135,12 @@ describe('cl:Xception', () => {
       });
     });
   });
+
+  describe('render', () => {
+    it('should render the error', async () => {
+      const result = await extendedError.render({ showSource: true });
+
+      expect(result).toEqual(expect.stringContaining('test:xception'));
+    });
+  });
 });

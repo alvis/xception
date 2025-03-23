@@ -14,9 +14,12 @@
  */
 
 import { jsonify } from '#jsonify';
+import { renderError } from '#render';
 import { $cause, $meta, $namespace, $tags } from '#symbols';
 
 import type { JsonObject } from 'type-fest';
+
+import type { RenderOptions } from '#render';
 
 export interface XceptionOptions {
   /** upstream error */
@@ -109,5 +112,14 @@ export class Xception extends Error {
       meta: jsonify(this[$meta]),
       tags: this[$tags],
     };
+  }
+
+  /**
+   * render the error to as a string
+   * @param options render options
+   * @returns a rendered string
+   */
+  public async render(options?: RenderOptions): Promise<string> {
+    return renderError(this, options);
   }
 }
