@@ -59,9 +59,9 @@
   },
   "devDependencies": {
     "@types/node": "^18.8.0",
-    "presetter-preset-esm": "^5.0.0",
-    "presetter-preset-strict": "^5.0.0",
-    "presetter": "^5.0.0"
+    "presetter-preset-esm": "^7.0.0",
+    "presetter-preset-strict": "^7.0.0",
+    "presetter": "^7.0.0"
   },
   "dependencies": {
     "chalk": "^5.3.0",

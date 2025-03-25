@@ -17,6 +17,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Xception } from '#base';
 import { renderError } from '#render';
+
 import { ansi } from './ansi';
 
 vi.mock('node:fs', () => ({

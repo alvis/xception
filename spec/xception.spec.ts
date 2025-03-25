@@ -58,7 +58,7 @@ describe('fn:xceptionalize', () => {
     const xceptionError = new Xception('test', { cause });
     const xceptionalizedError = xception(xceptionError);
 
-    expect(xceptionalizedError).toEqual(xceptionError);
+    expect(xceptionalizedError.toJSON()).toEqual(xceptionError.toJSON());
     expect(xceptionalizedError.cause).toEqual(cause);
   });
 
