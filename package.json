@@ -36,12 +36,23 @@
   "main": "lib/index.js",
   "module": "lib/index.js",
   "types": "lib/index.d.ts",
+  "imports": {
+    "#*": "./source/*.ts"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "default": "./lib/index.js"
-    },
-    "./package.json": "./package.json"
+      "default": "./source/index.ts"
+    }
+  },
+  "publishConfig": {
+    "imports": null,
+    "exports": {
+      ".": {
+        "import": "./lib/index.js",
+        "types": "./lib/index.d.ts"
+      }
+    }
   },
   "scripts": {
     "build": "run build",
