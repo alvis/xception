@@ -59,7 +59,7 @@ export function disassembleStack(stack: string): StackBlock[] {
         } as StackLocationBlock;
       }
 
-      const locationWithoutEntryMatch = line.match(locationWithoutEntryRegex);
+      const locationWithoutEntryMatch = locationWithoutEntryRegex.exec(line);
       if (locationWithoutEntryMatch) {
         const [, location, line, column] = locationWithoutEntryMatch;
 
