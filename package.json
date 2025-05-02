@@ -54,6 +54,9 @@
       }
     }
   },
+  "browser": {
+    "fs": false
+  },
   "scripts": {
     "build": "run build",
     "coverage": "run coverage --",
