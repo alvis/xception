@@ -21,7 +21,7 @@ import { jsonify } from '#jsonify';
 import { createSourceResolver } from '#source';
 import { disassembleStack } from '#stack';
 
-import { $cause, $meta, $namespace, $tags } from './symbols';
+import { $cause, $meta, $namespace, $tags } from '#symbols';
 
 import type { ChalkInstance } from 'chalk';
 import type { JsonObject, JsonValue } from 'type-fest';
