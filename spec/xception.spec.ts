@@ -22,79 +22,110 @@ import xception from '#xception';
 
 describe('fn:xceptionalize', () => {
   it('should wrap a string as an Xception', () => {
-    const xceptionalizedError = xception('test');
-    expect(xceptionalizedError).toBeInstanceOf(Xception);
-    expect(xceptionalizedError.name).toEqual('Xception');
-    expect(xceptionalizedError.message).toEqual('non-error: test');
-    expect(xceptionalizedError.stack).toBeDefined();
-    expect(xceptionalizedError[$meta]).toEqual({});
+    const input = 'test';
+    const expectedName = 'Xception';
+    const expectedMessage = 'non-error: test';
+    const expectedMeta = {};
+
+    const result = xception(input);
+
+    expect(result).toBeInstanceOf(Xception);
+    expect(result.name).toEqual(expectedName);
+    expect(result.message).toEqual(expectedMessage);
+    expect(result.stack).toBeDefined();
+    expect(result[$meta]).toEqual(expectedMeta);
   });
 
   it('should wrap an error as an Xception', () => {
+    const expectedName = 'Error';
+    const expectedMessage = 'test';
+    const expectedMeta = {};
+
     try {
-      throw new Error('test');
+      throw new Error(expectedMessage);
     } catch (error) {
-      const xceptionalizedError = xception(error);
-      expect(xceptionalizedError).toBeInstanceOf(Xception);
-      expect(xceptionalizedError.name).toEqual('Error');
-      expect(xceptionalizedError.message).toEqual('test');
-      expect(xceptionalizedError.stack).toEqual(error.stack);
-      expect(xceptionalizedError[$meta]).toEqual({});
-      expect(xceptionalizedError.cause).toEqual(error);
+      const result = xception(error);
+
+      expect(result).toBeInstanceOf(Xception);
+      expect(result.name).toEqual(expectedName);
+      expect(result.message).toEqual(expectedMessage);
+      expect(result.stack).toEqual(error.stack);
+      expect(result[$meta]).toEqual(expectedMeta);
+      expect(result.cause).toEqual(error);
     }
   });
 
   it('should wrap an error-like object as an Xception', () => {
-    const xceptionalizedError = xception({ message: 'test' });
-    expect(xceptionalizedError).toBeInstanceOf(Xception);
-    expect(xceptionalizedError.name).toEqual('Xception');
-    expect(xceptionalizedError.message).toEqual('test');
-    expect(xceptionalizedError[$meta]).toEqual({});
-    expect(xceptionalizedError.cause).toEqual({ message: 'test' });
+    const input = { message: 'test' };
+    const expectedName = 'Xception';
+    const expectedMessage = 'test';
+    const expectedMeta = {};
+    const expectedCause = { message: 'test' };
+
+    const result = xception(input);
+
+    expect(result).toBeInstanceOf(Xception);
+    expect(result.name).toEqual(expectedName);
+    expect(result.message).toEqual(expectedMessage);
+    expect(result[$meta]).toEqual(expectedMeta);
+    expect(result.cause).toEqual(expectedCause);
   });
 
   it('should ignore any xception instance', () => {
     const cause = new Error('test');
     const xceptionError = new Xception('test', { cause });
-    const xceptionalizedError = xception(xceptionError);
+    const expectedJson = xceptionError.toJSON();
+    const expectedCause = cause;
 
-    expect(xceptionalizedError.toJSON()).toEqual(xceptionError.toJSON());
-    expect(xceptionalizedError.cause).toEqual(cause);
+    const result = xception(xceptionError);
+
+    expect(result.toJSON()).toEqual(expectedJson);
+    expect(result.cause).toEqual(expectedCause);
   });
 
-  it('should throw an exception if the input is not a string, an error or an Xception', () => {
-    const xceptionalizedError = xception(1);
+  it('should wrap non-error values as an Xception', () => {
+    const input = 1;
+    const expectedMessage = 'non-error: 1';
+    const expectedCause = 1;
 
-    expect(xceptionalizedError.message).toEqual(`non-error: 1`);
-    expect(xceptionalizedError.cause).toEqual(1);
+    const result = xception(input);
+
+    expect(result.message).toEqual(expectedMessage);
+    expect(result.cause).toEqual(expectedCause);
   });
 
   it('should change the namespace of an Xception', () => {
     const original = new Xception('message', { namespace: 'original' });
-    const xceptionalizedError = xception(original, { namespace: 'new' });
+    const expectedNamespace = 'new';
 
-    expect(xceptionalizedError.namespace).toEqual('new');
+    const result = xception(original, { namespace: expectedNamespace });
+
+    expect(result.namespace).toEqual(expectedNamespace);
   });
 
   it('should merge metadata of an Xception', () => {
     const original = new Xception('message', {
       meta: { bar: 'bar', foo: 'foo' },
     });
-    const xceptionalizedError = xception(original, {
-      meta: { bar: 'new', new: 'new' },
-    });
-
-    expect(xceptionalizedError.meta).toEqual({
+    const expectedMeta = {
       bar: 'new',
       foo: 'foo',
       new: 'new',
+    };
+
+    const result = xception(original, {
+      meta: { bar: 'new', new: 'new' },
     });
+
+    expect(result.meta).toEqual(expectedMeta);
   });
 
   it('should merge tags of an Xception', () => {
     const original = new Xception('message', { tags: ['foo', 'bar'] });
-    const xceptionalizedError = xception(original, { tags: ['new', 'bar'] });
+    const expectedTags = ['foo', 'bar', 'new'];
 
-    expect(xceptionalizedError.tags).toEqual(['foo', 'bar', 'new']);
+    const result = xception(original, { tags: ['new', 'bar'] });
+
+    expect(result.tags).toEqual(expectedTags);
   });
 });

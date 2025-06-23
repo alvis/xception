@@ -56,36 +56,35 @@ class MockedError extends Error {
 
 describe('fn:renderError', () => {
   it('should render an error stack with its own format', async () => {
-    const rendered = (
-      await renderError(
-        new MockedError(
-          'Error1: message1\n' +
-            '    at entry1 (src1:1:0)\n' +
-            '    at entry2 (src2:2:0)',
-        ),
-      )
-    ).replace(ansi, '');
-
-    expect(rendered).toEqual(
-      '[Error1] message1\n' +
+    const error = new MockedError(
+      'Error1: message1\n' +
         '    at entry1 (src1:1:0)\n' +
         '    at entry2 (src2:2:0)',
     );
+    const expected =
+      '[Error1] message1\n' +
+      '    at entry1 (src1:1:0)\n' +
+      '    at entry2 (src2:2:0)';
+
+    const rendered = (await renderError(error)).replace(ansi, '');
+
+    expect(rendered).toEqual(expected);
   });
 
   it('should skip the stack if instructed', async () => {
-    const rendered = (
-      await renderError(
-        new MockedError(
-          'Error1: message1\n' +
-            '    at entry1 (src1:1:0)\n' +
-            '    at entry2 (src2:2:0)',
-        ),
-        { showStack: false },
-      )
-    ).replace(ansi, '');
+    const error = new MockedError(
+      'Error1: message1\n' +
+        '    at entry1 (src1:1:0)\n' +
+        '    at entry2 (src2:2:0)',
+    );
+    const expected = '[Error1] message1';
 
-    expect(rendered).toEqual('[Error1] message1');
+    const rendered = (await renderError(error, { showStack: false })).replace(
+      ansi,
+      '',
+    );
+
+    expect(rendered).toEqual(expected);
   });
 
   it('should render an error stack without node:internal & node_modules by default', async () => {

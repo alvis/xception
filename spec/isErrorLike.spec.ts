@@ -25,26 +25,35 @@ describe('fn:isErrorLike', () => {
       stack:
         'TestError: test message\n    at testFunction (/path/to/file.js:1:1)',
     };
+    const expected = true;
 
-    expect(isErrorLike(errorLike)).toBe(true);
+    const result = isErrorLike(errorLike);
+
+    expect(result).toBe(expected);
   });
 
-  it('should return true for an object with without name', () => {
+  it('should return true for an object without name', () => {
     const errorLike = {
       message: 'test message',
       stack:
         'TestError: test message\n    at testFunction (/path/to/file.js:1:1)',
     };
+    const expected = true;
 
-    expect(isErrorLike(errorLike)).toBe(true);
+    const result = isErrorLike(errorLike);
+
+    expect(result).toBe(expected);
   });
 
-  it('should return true for an object as long as it has message', () => {
+  it('should return true for an object that has only a message property', () => {
     const errorLike = {
       message: 'test message',
     };
+    const expected = true;
 
-    expect(isErrorLike(errorLike)).toBe(true);
+    const result = isErrorLike(errorLike);
+
+    expect(result).toBe(expected);
   });
 
   it('should return false for an object without message property', () => {
@@ -53,14 +62,19 @@ describe('fn:isErrorLike', () => {
       stack:
         'TestError: test message\n    at testFunction (/path/to/file.js:1:1)',
     };
+    const expected = false;
 
-    expect(isErrorLike(errorLike)).toBe(false);
+    const result = isErrorLike(errorLike);
+
+    expect(result).toBe(expected);
   });
 
   it('should return false for a non-object value', () => {
-    expect(isErrorLike('test')).toBe(false);
-    expect(isErrorLike(123)).toBe(false);
-    expect(isErrorLike(null)).toBe(false);
-    expect(isErrorLike(undefined)).toBe(false);
+    const expected = false;
+
+    expect(isErrorLike('test')).toBe(expected);
+    expect(isErrorLike(123)).toBe(expected);
+    expect(isErrorLike(null)).toBe(expected);
+    expect(isErrorLike(undefined)).toBe(expected);
   });
 });
