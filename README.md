@@ -220,11 +220,6 @@ This method allows for the transformation of existing errors into `Xception` ins
 
 ---
 
-## Know Issues & Limitations
-
-- This package is designed to provide server-side debugging functionality only. It has not been tested on any web browsers.
-- Running this package with node < 12 is known to have problems such as wrong line number reported. Upgrade to a higher version to avoid the issue if it is possible.
-
 Got an idea for workarounds for these issues? [Let the community know.](https://github.com/xception/xception/issues/new)
 
 ## About

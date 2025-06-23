@@ -1,0 +1,5 @@
+export const DUMMY_SOURCE_WITHOUT_SOURCEMAP = `console.log('Hello, world!');`;
+
+export const DUMMY_SOURCE_WITH_SOURCEMAP_AND_ORIGINAL_SOURCE = `console.log('Hello, world!');\n//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAiZmlsZSI6ICJmaWxlLmpzIiwKICAic291cmNlcyI6IFsiZmlsZS50cyJdLAogICJzb3VyY2VzQ29udGVudCI6IFsiY29uc29sZS5sb2coJ0hlbGxvLCB3b3JsZCEnKTsiXSwKICAibmFtZXMiOiBbXSwKICAibWFwcGluZ3MiOiAiQUFBQSxJQUFJLENBQUMsR0FBRyxDQUFDLE9BQU8sQ0FBQyxDQUFDIgp9`;
+
+export const DUMMY_SOURCE_WITH_SOURCEMAP_BUT_NO_ORIGINAL_SOURCE = `console.log('Hello, world!');\n//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAiZmlsZSI6ICJmaWxlLmpzIiwKICAic291cmNlcyI6IFsiZmlsZS50cyJdLAogICJuYW1lcyI6IFtdLAogICJtYXBwaW5ncyI6ICJBQUFBLElBQUksQ0FBQyxHQUFHLENBQUMsT0FBTyxDQUFDLENBQUMiCn0=`;

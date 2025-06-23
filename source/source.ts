@@ -15,7 +15,7 @@
 
 import { SourceMapConsumer } from 'source-map-js';
 
-import { base64Decode } from '#base64';
+import { decodeBase64, fetchWebContent, readLocalContent } from '#content';
 
 import type { RawSourceMap } from 'source-map-js';
 
@@ -49,7 +49,7 @@ export async function createSourceResolver(
 ): Promise<SourceResolver> {
   const source = /^https?:\/\/.*/.exec(identifier)
     ? await fetchWebContent(identifier) // load from web if URL is HTTP/HTTPS
-    : await readLocalFile(identifier); // load from local file otherwise
+    : await readLocalContent(identifier); // load from local file otherwise
 
   if (!source) {
     return ({ line, column }) => ({ identifier, line, column });
@@ -66,37 +66,6 @@ export async function createSourceResolver(
   }
 
   return createSourceResolverWithSource(identifier, source);
-}
-
-/**
- * reads the content of a local file if it exists and is accessible
- * @param url the file URL or path
- * @returns the file content as a string, or null if the file does not exist or the environment is not Node.js
- */
-export async function readLocalFile(url: string): Promise<string | null> {
-  const path = url.replace(/^file:\/\//, ''); // remove the file:// prefix
-
-  // check if running in a Node.js environment
-  if (globalThis.process.versions.node) {
-    const { existsSync, readFileSync } = await import('fs'); // dynamically import node.js file system module
-
-    return existsSync(path) ? readFileSync(path).toString() : null;
-  }
-
-  // if running in a browser environment, return null
-  return null;
-}
-
-/**
- * retrieves the content of a web resource from a given URL
- * @param url the URL of the resource
- * @returns the resource content or null if the request fails
- */
-export async function fetchWebContent(url: string): Promise<string | null> {
-  const response = await fetch(url);
-
-  // return the content only if the response is successful
-  return response.ok ? response.text() : null;
 }
 
 /**
@@ -122,7 +91,7 @@ export function createSourceResolverWithSource(
   return ({ line, column }) => {
     const sourceMapBase64 = matches[1];
     const rawSourceMap = JSON.parse(
-      base64Decode(sourceMapBase64),
+      decodeBase64(sourceMapBase64),
     ) as RawSourceMap; // decode and parse the source map
 
     // use SourceMapConsumer to map to the original source

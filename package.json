@@ -36,12 +36,28 @@
   "main": "lib/index.js",
   "module": "lib/index.js",
   "types": "lib/index.d.ts",
+  "imports": {
+    "#content": {
+      "browser": "./source/content.browser.ts",
+      "default": "./source/content.node.ts"
+    },
+    "#*": "./source/*.ts"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "imports": {
+      "#content": {
+        "browser": "./lib/content.browser.js",
+        "default": "./lib/content.node.js"
+      },
+      "#*": "./lib/*.js"
+    }
   },
   "scripts": {
     "build": "run build",
@@ -59,6 +75,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.8.0",
+    "jsdom": "^26.1.0",
     "presetter-preset-esm": "^7.0.0",
     "presetter-preset-strict": "^7.0.0",
     "presetter": "^7.0.0"
