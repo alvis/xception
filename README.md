@@ -5,7 +5,7 @@
 [![npm](https://img.shields.io/npm/v/xception?style=flat-square)](https://github.com/alvis/xception/releases)
 [![build](https://img.shields.io/github/actions/workflow/status/alvis/xception/test.yaml?style=flat-square)](https://github.com/alvis/xception/actions)
 [![coverage](https://img.shields.io/codeclimate/coverage/alvis/xception?style=flat-square)](https://codeclimate.com/github/alvis/xception/test_coverage)
-[![security](https://img.shields.io/sonar/vulnerabilities/alvis_xception/master?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://snyk.io/advisor/npm-package/xception)
+[![vulnerabilities](https://img.shields.io/sonar/vulnerabilities/alvis_xception/master?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/summary/new_code?id=alvis_xception)
 [![dependencies](https://img.shields.io/librariesio/release/npm/xception?style=flat-square)](https://libraries.io/npm/xception)
 [![license](https://img.shields.io/github/license/alvis/xception.svg?style=flat-square)](https://github.com/alvis/xception/blob/master/LICENSE)
 
