@@ -11,9 +11,9 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.5.0
-      highlight-es:
-        specifier: ^1.0.0
-        version: 1.0.3
+      js-tokens:
+        specifier: ^9.0.0
+        version: 9.0.1
       source-map-js:
         specifier: ^1.2.0
         version: 1.2.1
