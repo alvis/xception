@@ -1,10 +1,6 @@
 {
   "name": "xception",
   "version": "8.0.0",
-  "packageManager": "pnpm@10.7.0",
-  "engines": {
-    "node": ">=18.18"
-  },
   "description": "Handle exception smart.",
   "keywords": [
     "callstack",
@@ -27,21 +23,22 @@
   "bugs": {
     "url": "https://github.com/alvis/xception/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alvis/xception.git"
+  },
   "license": "MIT",
   "author": {
     "name": "Alvis HT Tang",
     "email": "alvis@hilbert.space"
   },
   "type": "module",
-  "main": "lib/index.js",
-  "module": "lib/index.js",
-  "types": "lib/index.d.ts",
   "imports": {
     "#content": {
-      "browser": "./source/content.browser.ts",
-      "default": "./source/content.node.ts"
+      "browser": "./src/content.browser.ts",
+      "default": "./src/content.node.ts"
     },
-    "#*": "./source/*.ts"
+    "#*": "./src/*.ts"
   },
   "exports": {
     ".": {
@@ -50,15 +47,9 @@
     },
     "./package.json": "./package.json"
   },
-  "publishConfig": {
-    "imports": {
-      "#content": {
-        "browser": "./lib/content.browser.js",
-        "default": "./lib/content.node.js"
-      },
-      "#*": "./lib/*.js"
-    }
-  },
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "run build",
     "coverage": "run coverage --",
@@ -69,22 +60,31 @@
     "test": "run test --",
     "watch": "run watch --"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/alvis/xception.git"
-  },
-  "devDependencies": {
-    "@types/node": "^24.0.0",
-    "jsdom": "^26.1.0",
-    "presetter-preset-esm": "^7.0.0",
-    "presetter-preset-strict": "^7.0.0",
-    "presetter": "^7.0.0"
-  },
   "dependencies": {
     "chalk": "^5.3.0",
     "js-tokens": "^9.0.0",
     "source-map-js": "^1.2.0",
     "type-fest": "^4.23.0",
     "yaml": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "jsdom": "^26.1.0",
+    "presetter": "^8.0.0",
+    "presetter-preset-esm": "^8.0.0",
+    "presetter-preset-strict": "^8.0.0"
+  },
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "publishConfig": {
+    "imports": {
+      "#content": {
+        "browser": "./lib/content.browser.js",
+        "default": "./lib/content.node.js"
+      },
+      "#*": "./lib/*.js"
+    }
   }
 }
