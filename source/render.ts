@@ -14,9 +14,9 @@
  */
 
 import chalk from 'chalk';
-import highlight from 'highlight-es';
 import { stringify } from 'yaml';
 
+import { highlight } from '#highlight';
 import { jsonify } from '#jsonify';
 import { createSourceResolver } from '#source';
 import { disassembleStack } from '#stack';
@@ -26,6 +26,7 @@ import { $cause, $meta, $namespace, $tags } from '#symbols';
 import type { ChalkInstance } from 'chalk';
 import type { JsonObject, JsonValue } from 'type-fest';
 
+import type { HighlightTheme } from '#highlight';
 import type { ErrorLike } from '#isErrorLike';
 import type { StackLocationBlock } from '#stack';
 
@@ -47,7 +48,7 @@ const PADDING = 4;
 /** default number of lines from the targeted source line to be displayed */
 const SPREAD = 4;
 
-const CODE_THEME = {
+const CODE_THEME: HighlightTheme = {
   string: chalk.green,
   punctuator: chalk.grey,
   keyword: chalk.cyan,
