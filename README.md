@@ -1,11 +1,11 @@
-# ![Logo](logo.svg)
-
 <div align="center">
+
+<img src="./logo.svg" alt="xception logo" width="220" />
+
+# xception
 
 [![npm](https://img.shields.io/npm/dm/xception?style=flat-square)](https://www.npmjs.com/package/xception)
 [![build](https://img.shields.io/github/actions/workflow/status/alvis/xception/test.yaml?style=flat-square)](https://github.com/alvis/xception/actions)
-[![coverage](https://img.shields.io/codeclimate/coverage/alvis/xception?style=flat-square)](https://codeclimate.com/github/alvis/xception/test_coverage)
-[![vulnerabilities](https://img.shields.io/sonar/vulnerabilities/alvis_xception/master?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/summary/new_code?id=alvis_xception)
 [![dependencies](https://img.shields.io/librariesio/release/npm/xception?style=flat-square)](https://libraries.io/npm/xception)
 [![license](https://img.shields.io/github/license/alvis/xception.svg?style=flat-square)](https://github.com/alvis/xception/blob/master/LICENSE)
 
@@ -35,6 +35,8 @@ import { Xception } from 'xception';
 
 throw new Xception('Payment failed', {
   cause: originalError,
+  severity: 'error',
+  code: 'billing:payment_failed',
   namespace: 'billing',
   meta: { orderId: 'ORD-123', amount: 99.99 },
   tags: ['payment', 'retryable'],
@@ -48,6 +50,8 @@ class DatabaseError extends Xception {
   constructor(query: string, cause: Error) {
     super('Database query failed', {
       cause,
+      severity: 'error',
+      code: 'app:database_query_failed',
       namespace: 'app:database',
       meta: { query, retryable: true },
       tags: ['database', 'recoverable'],
@@ -63,6 +67,8 @@ try {
   console.log(JSON.stringify(dbError.toJSON(), null, 2));
 }
 // {
+//   "severity": "error",
+//   "code": "app:database_query_failed",
 //   "namespace": "app:database",
 //   "name": "DatabaseError",
 //   "message": "Database query failed",
@@ -94,6 +100,7 @@ Xception preserves everything:
 - **🔗 Chains maintained**: `cause` property links errors into full causality chains (TC39 aligned)
 - **📊 JSON-ready**: `toJSON()` serializes the entire error graph for structured logging
 - **🏷️ Categorized**: `namespace` and `tags` let you filter, route, and aggregate errors
+- **🚦 Routable**: `severity` and `code` support machine-readable handling, alerting, and i18n
 - **📦 Lightweight**: Minimal footprint with a single types-only dependency
 
 ---
@@ -106,6 +113,7 @@ Xception preserves everything:
 | **Error Chaining**     | ✅       | Partial        | Maintain full causality with upstream errors |
 | **Metadata Support**   | ✅       | ❌             | Embed any context for debugging              |
 | **Namespace & Tags**   | ✅       | ❌             | Categorize errors for filtering              |
+| **Severity & Code**    | ✅       | ❌             | Route, classify, and translate errors        |
 | **JSON Serialization** | ✅       | ❌             | Ready for structured logging and monitoring  |
 | **Tag Inheritance**    | ✅       | ❌             | Tags propagate through cause chains          |
 | **Circular-safe**      | ✅       | ❌             | Handles circular references in serialization |
@@ -133,6 +141,8 @@ try {
 } catch (cause) {
   throw new Xception('API request failed', {
     cause,
+    severity: 'warning',
+    code: 'api:network_timeout',
     namespace: 'api:client',
     meta: { endpoint: '/users', timeout: 5000 },
     tags: ['network', 'retryable'],
@@ -150,6 +160,8 @@ class DatabaseError extends AppError {
   constructor(query: string, cause: Error) {
     super('Database query failed', {
       cause,
+      severity: 'error',
+      code: 'app:database_query_failed',
       namespace: 'app:database',
       meta: { query, retryable: true },
       tags: ['database', 'recoverable'],
@@ -161,6 +173,8 @@ class ValidationError extends AppError {
   constructor(field: string, value: unknown) {
     super(`Validation failed for field: ${field}`, {
       namespace: 'validation',
+      severity: 'warning',
+      code: 'validation:invalid_field',
       meta: { field, value, timestamp: Date.now() },
       tags: ['validation', 'user-error'],
     });
@@ -195,6 +209,25 @@ const outer = new Xception('Write failed', {
 
 console.log(outer.tags);
 // ['infrastructure', 'retryable', 'storage'] — inherited + deduplicated
+```
+
+### Severity and Code
+
+Severity defaults to `error`. It inherits through `Xception` cause chains unless you explicitly override it. Codes stay local to the error that declares them.
+
+```ts
+const inner = new Xception('Token expired', {
+  severity: 'warning',
+  code: 'auth:token_expired',
+});
+
+const outer = new Xception('Request rejected', {
+  cause: inner,
+  code: 'api:request_rejected',
+});
+
+console.log(outer.severity); // 'warning'
+console.log(outer.code); // 'api:request_rejected'
 ```
 
 ### Error Conversion with `xception()`
@@ -273,17 +306,23 @@ interface XceptionOptions {
   meta?: Record<string, unknown>;
   /** Additional associations for filtering */
   tags?: string[];
+  /** Severity for routing and alerting */
+  severity?: 'fatal' | 'error' | 'warning' | 'info' | 'debug';
+  /** Machine-readable error code */
+  code?: number | string;
 }
 ```
 
 #### Properties
 
-| Property    | Type                      | Description                                                 |
-| ----------- | ------------------------- | ----------------------------------------------------------- |
-| `cause`     | `unknown`                 | The upstream error                                          |
-| `namespace` | `string \| undefined`     | Component identifier                                        |
-| `meta`      | `Record<string, unknown>` | Embedded context data                                       |
-| `tags`      | `string[]`                | Associated tags (inherited + deduplicated from cause chain) |
+| Property    | Type                            | Description                                                 |
+| ----------- | ------------------------------- | ----------------------------------------------------------- |
+| `cause`     | `unknown`                       | The upstream error                                          |
+| `namespace` | `string \| undefined`           | Component identifier                                        |
+| `meta`      | `Record<string, unknown>`       | Embedded context data                                       |
+| `tags`      | `string[]`                      | Associated tags (inherited + deduplicated from cause chain) |
+| `severity`  | `Severity`                      | Alerting and routing level                                  |
+| `code`      | `number \| string \| undefined` | Machine-readable error identifier                           |
 
 #### Methods
 
@@ -302,12 +341,14 @@ type Options = {
   namespace?: string;
   meta?: Record<string, unknown>;
   tags?: string[];
+  severity?: 'fatal' | 'error' | 'warning' | 'info' | 'debug';
+  code?: number | string;
   /** Custom factory for producing Xception subclasses */
   factory?: (message: string, options: XceptionOptions) => Xception;
 };
 ```
 
-When the input is already an `Xception`, metadata is **merged** (new meta overrides existing keys) and tags are **deduplicated**. Note that `xception()` unwraps an existing Xception — the new instance's `cause` points to the original's upstream cause, not the Xception itself.
+When the input is already an `Xception`, metadata is **merged** (new meta overrides existing keys), tags are **deduplicated**, severity is **inherited unless explicitly overridden**, and code is **not inherited**. Note that `xception()` unwraps an existing Xception — the new instance's `cause` points to the original's upstream cause, not the Xception itself.
 
 ### Function: `jsonify()`
 
@@ -344,6 +385,8 @@ These symbols provide direct access to Xception's protected internals. They exis
 | `$tags`      | Access error tags      |
 | `$cause`     | Access error cause     |
 | `$meta`      | Access error metadata  |
+| `$severity`  | Access error severity  |
+| `$code`      | Access error code      |
 
 ---
 
@@ -390,7 +433,7 @@ xception is designed as a focused core with companion packages for extended func
 | [**xception**](https://github.com/alvis/xception) | Context-aware error handling — metadata, chaining, serialization (this package)        |
 | [**sher.log**](https://github.com/alvis/sher.log) | Beautiful error rendering — colorized stack traces, source code display, YAML metadata |
 
-The exported symbols (`$namespace`, `$tags`, `$cause`, `$meta`) exist specifically for companion packages to access Xception's protected internals without requiring subclassing.
+The exported symbols (`$namespace`, `$tags`, `$cause`, `$meta`, `$severity`, `$code`) exist specifically for companion packages to access Xception's protected internals without requiring subclassing.
 
 ---
 
