@@ -34,10 +34,6 @@
   },
   "type": "module",
   "imports": {
-    "#content": {
-      "browser": "./src/content.browser.ts",
-      "default": "./src/content.node.ts"
-    },
     "#*": "./src/*.ts"
   },
   "exports": {
@@ -61,15 +57,10 @@
     "watch": "run watch --"
   },
   "dependencies": {
-    "chalk": "^5.3.0",
-    "js-tokens": "^9.0.0",
-    "source-map-js": "^1.2.0",
-    "type-fest": "^4.23.0",
-    "yaml": "^2.6.0"
+    "type-fest": "^4.23.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
-    "jsdom": "^26.1.0",
     "presetter": "^8.0.0",
     "presetter-preset-esm": "^8.0.0",
     "presetter-preset-strict": "^8.0.0"
@@ -80,10 +71,6 @@
   },
   "publishConfig": {
     "imports": {
-      "#content": {
-        "browser": "./lib/content.browser.js",
-        "default": "./lib/content.node.js"
-      },
       "#*": "./lib/*.js"
     }
   }

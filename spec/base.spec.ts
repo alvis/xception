@@ -157,12 +157,4 @@ describe('cl:Xception', () => {
       expect(extendedError.toJSON()).toEqual(expectedExtended);
     });
   });
-
-  describe('render', () => {
-    it('should render the error', async () => {
-      const result = await extendedError.render({ showSource: true });
-
-      expect(result).toEqual(expect.stringContaining('test:xception'));
-    });
-  });
 });

@@ -2,26 +2,48 @@
 
 <div align="center">
 
-[![npm](https://img.shields.io/npm/v/xception?style=flat-square)](https://github.com/alvis/xception/releases)
+[![npm](https://img.shields.io/npm/dm/xception?style=flat-square)](https://www.npmjs.com/package/xception)
 [![build](https://img.shields.io/github/actions/workflow/status/alvis/xception/test.yaml?style=flat-square)](https://github.com/alvis/xception/actions)
 [![coverage](https://img.shields.io/codeclimate/coverage/alvis/xception?style=flat-square)](https://codeclimate.com/github/alvis/xception/test_coverage)
 [![vulnerabilities](https://img.shields.io/sonar/vulnerabilities/alvis_xception/master?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/summary/new_code?id=alvis_xception)
 [![dependencies](https://img.shields.io/librariesio/release/npm/xception?style=flat-square)](https://libraries.io/npm/xception)
 [![license](https://img.shields.io/github/license/alvis/xception.svg?style=flat-square)](https://github.com/alvis/xception/blob/master/LICENSE)
 
-**Context-aware error handling and beautiful stack traces — debug with 100% confidence, every time.**
+**Handle exceptions smart** — context-preserving, chainable, serializable errors for TypeScript.
+
+_Lightweight error handling with metadata embedding, namespace categorization, tag inheritance, and JSON serialization._
 
 </div>
+
+> 🎨 **Need beautiful error rendering?** Colorized stack traces, syntax-highlighted source code, and YAML metadata display are available in the companion package [**sher.log**](https://github.com/alvis/sher.log).
+
+---
 
 ## ⚡ Quick Start
 
 ```bash
+# npm
 npm install xception
+# pnpm
+pnpm add xception
+# yarn
+yarn add xception
 ```
 
 ```ts
-import { Xception, renderError } from 'xception';
+import { Xception } from 'xception';
 
+throw new Xception('Payment failed', {
+  cause: originalError,
+  namespace: 'billing',
+  meta: { orderId: 'ORD-123', amount: 99.99 },
+  tags: ['payment', 'retryable'],
+});
+```
+
+### With Custom Error Classes
+
+```ts
 class DatabaseError extends Xception {
   constructor(query: string, cause: Error) {
     super('Database query failed', {
@@ -38,32 +60,17 @@ try {
   throw new Error('Connection timeout');
 } catch (error) {
   const dbError = new DatabaseError('SELECT * FROM users', error);
-  console.log(await renderError(dbError, { showSource: true }));
+  console.log(JSON.stringify(dbError.toJSON(), null, 2));
 }
-```
-
-**Output:**
-
-```plantext
-[DatabaseError] Database query failed
-
-    app:database database recoverable
-
-    query: SELECT * FROM users
-    retryable: true
-
-    at queryDatabase (/app/database.ts:15:11)
-
-   13 | async function queryDatabase(sql: string) {
-   14 |   try {
- > 15 |     throw new DatabaseError(sql, new Error('Connection timeout'));
-   16 |   } catch (error) {
-   17 |     // Error handling logic
-   18 |   }
-   19 | }
-
-[Error] Connection timeout
-      at queryDatabase (/app/database.ts:15:45)
+// {
+//   "namespace": "app:database",
+//   "name": "DatabaseError",
+//   "message": "Database query failed",
+//   "stack": "DatabaseError: Database query failed\n    at ...",
+//   "cause": { "message": "Connection timeout", "name": "Error", ... },
+//   "meta": { "query": "SELECT * FROM users", "retryable": true },
+//   "tags": ["database", "recoverable"]
+// }
 ```
 
 ---
@@ -72,43 +79,44 @@ try {
 
 ### 😩 The Problem
 
-Debugging Node.js applications is painful when:
+Standard JavaScript errors lose context as they propagate:
 
-- **Context is lost**: Errors bubble up without environmental details
-- **Stack traces are noisy**: Internal Node.js calls clutter the output
-- **Root causes are hidden**: Multiple error layers make debugging time-consuming
-- **Manual context tracking**: No standardized way to embed debugging metadata
+- **Context vanishes**: `throw new Error('Query failed')` — which query? what parameters? what user?
+- **Chains break**: Wrapping errors with `new Error('...')` discards the original stack trace
+- **No structure**: `JSON.stringify(new Error('fail'))` gives you `{}` — useless for logging pipelines
+- **No categorization**: No standardized way to tag, namespace, or filter errors
 
 ### 💡 The Solution
 
-Xception transforms error handling with:
+Xception preserves everything:
 
-- **🎯 Context preservation**: Embed runtime metadata when errors occur
-- **🔗 Error chaining**: Maintain full causality chains with upstream errors
-- **🎨 Beautiful rendering**: Colorized, filtered stack traces with source code
-- **🏷️ Smart categorization**: Namespace and tag errors for selective logging
-- **📍 Source mapping**: Automatic TypeScript source resolution
+- **🎯 Context preserved**: Attach `meta` with runtime state at the point of failure
+- **🔗 Chains maintained**: `cause` property links errors into full causality chains (TC39 aligned)
+- **📊 JSON-ready**: `toJSON()` serializes the entire error graph for structured logging
+- **🏷️ Categorized**: `namespace` and `tags` let you filter, route, and aggregate errors
+- **📦 Lightweight**: Minimal footprint with a single types-only dependency
 
 ---
 
 ## 🚀 Key Features
 
-| Feature                 | Xception | Standard Error | Why It Matters                               |
-| ----------------------- | -------- | -------------- | -------------------------------------------- |
-| **Context Embedding**   | ✅       | ❌             | Capture runtime state when errors occur      |
-| **Error Chaining**      | ✅       | Partial        | Maintain full causality with upstream errors |
-| **Colorized Output**    | ✅       | ❌             | Quickly identify critical information        |
-| **Source Code Display** | ✅       | ❌             | See exact code that caused the error         |
-| **Noise Filtering**     | ✅       | ❌             | Hide internal Node.js stack frames           |
-| **TypeScript Support**  | ✅       | ✅             | First-class TypeScript source mapping        |
-| **Metadata Support**    | ✅       | ❌             | Embed any context for debugging              |
+| Feature                | Xception | Standard Error | Why It Matters                               |
+| ---------------------- | -------- | -------------- | -------------------------------------------- |
+| **Context Embedding**  | ✅       | ❌             | Capture runtime state when errors occur      |
+| **Error Chaining**     | ✅       | Partial        | Maintain full causality with upstream errors |
+| **Metadata Support**   | ✅       | ❌             | Embed any context for debugging              |
+| **Namespace & Tags**   | ✅       | ❌             | Categorize errors for filtering              |
+| **JSON Serialization** | ✅       | ❌             | Ready for structured logging and monitoring  |
+| **Tag Inheritance**    | ✅       | ❌             | Tags propagate through cause chains          |
+| **Circular-safe**      | ✅       | ❌             | Handles circular references in serialization |
+| **TypeScript-first**   | ✅       | Partial        | Full type safety with generics               |
 
 **Core Benefits:**
 
-- **🔍 Debug faster**: Context-aware errors reduce investigation time by 80%
-- **🎯 Find root causes**: Full error chains show exactly what went wrong
-- **🛡️ Production-ready**: Structured error handling for monitoring tools
-- **📊 Smart logging**: Tag-based filtering for different environments
+- **🔍 Debug faster**: Context-aware errors reduce investigation time — see exactly what went wrong and where
+- **🎯 Find root causes**: Full error chains show the complete causality from origin to surface
+- **🛡️ Production-ready**: Structured serialization for monitoring tools like Datadog, Sentry, and ELK
+- **📊 Smart logging**: Tag and namespace-based filtering for different environments
 
 ---
 
@@ -132,13 +140,26 @@ try {
 }
 ```
 
-### Custom Error Classes
+### Custom Error Hierarchies
 
 ```ts
-class ValidationError extends Xception {
-  constructor(field: string, value: unknown, cause?: Error) {
-    super(`Validation failed for field: ${field}`, {
+// Build a hierarchy for your domain
+class AppError extends Xception {}
+
+class DatabaseError extends AppError {
+  constructor(query: string, cause: Error) {
+    super('Database query failed', {
       cause,
+      namespace: 'app:database',
+      meta: { query, retryable: true },
+      tags: ['database', 'recoverable'],
+    });
+  }
+}
+
+class ValidationError extends AppError {
+  constructor(field: string, value: unknown) {
+    super(`Validation failed for field: ${field}`, {
       namespace: 'validation',
       meta: { field, value, timestamp: Date.now() },
       tags: ['validation', 'user-error'],
@@ -146,11 +167,39 @@ class ValidationError extends Xception {
   }
 }
 
-// Usage
-throw new ValidationError('email', 'invalid-email@');
+// Narrow with instanceof
+try {
+  await queryDatabase(sql);
+} catch (error) {
+  if (error instanceof DatabaseError) {
+    // Access typed metadata
+    console.log(error.meta); // { query: '...', retryable: true }
+    console.log(error.tags); // ['database', 'recoverable']
+  }
+}
 ```
 
-### Error Conversion
+### Tag Inheritance
+
+Tags automatically propagate and deduplicate through cause chains:
+
+```ts
+const inner = new Xception('disk full', {
+  tags: ['infrastructure', 'retryable'],
+});
+
+const outer = new Xception('Write failed', {
+  cause: inner,
+  tags: ['storage'],
+});
+
+console.log(outer.tags);
+// ['infrastructure', 'retryable', 'storage'] — inherited + deduplicated
+```
+
+### Error Conversion with `xception()`
+
+Convert any thrown value into an Xception — preserving the original message, name, and stack:
 
 ```ts
 import { xception } from 'xception';
@@ -158,7 +207,6 @@ import { xception } from 'xception';
 try {
   JSON.parse('invalid json');
 } catch (error) {
-  // Convert any error to Xception with additional context
   throw xception(error, {
     namespace: 'parser:json',
     meta: { source: 'user-input' },
@@ -167,18 +215,42 @@ try {
 }
 ```
 
-### Advanced Rendering
+### Custom Factory Pattern
+
+Use the `factory` option to produce your own Xception subclass from `xception()`:
 
 ```ts
-import { renderError } from 'xception';
+class HttpError extends Xception {}
 
-const options = {
-  showSource: true, // Display source code
-  showStack: true, // Show full stack trace
-  filter: (path) => !path.includes('node_modules'), // Filter noise
-};
+const error = xception(originalError, {
+  namespace: 'http',
+  factory: (message, options) => new HttpError(message, options),
+});
 
-console.log(await renderError(error, options));
+error instanceof HttpError; // true
+```
+
+### Structured Logging Integration
+
+```ts
+import { Xception } from 'xception';
+
+function errorMiddleware(
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const wrapped =
+    error instanceof Xception
+      ? error
+      : new Xception(error.message, { cause: error, namespace: 'http' });
+
+  // toJSON() gives you a complete, circular-safe JSON object
+  logger.error(wrapped.toJSON());
+
+  res.status(500).json({ error: wrapped.message });
+}
 ```
 
 ---
@@ -187,134 +259,192 @@ console.log(await renderError(error, options));
 
 ### Class: `Xception`
 
-#### Constructor
-
 ```ts
 new Xception(message: string, options?: XceptionOptions)
 ```
 
-#### Options
-
-| Option      | Type                      | Description                                   |
-| ----------- | ------------------------- | --------------------------------------------- |
-| `cause`     | `unknown`                 | Upstream error to be embedded                 |
-| `namespace` | `string`                  | Component identifier (e.g., `'app:database'`) |
-| `meta`      | `Record<string, unknown>` | Context data for debugging                    |
-| `tags`      | `string[]`                | Error associations for filtering              |
+```ts
+interface XceptionOptions {
+  /** Upstream error to be embedded */
+  cause?: unknown;
+  /** Error namespace (e.g., 'app:database') */
+  namespace?: string;
+  /** Context data for debugging */
+  meta?: Record<string, unknown>;
+  /** Additional associations for filtering */
+  tags?: string[];
+}
+```
 
 #### Properties
 
-- `cause`: The upstream error
-- `namespace`: Component identifier
-- `meta`: Embedded context data
-- `tags`: Associated tags
+| Property    | Type                      | Description                                                 |
+| ----------- | ------------------------- | ----------------------------------------------------------- |
+| `cause`     | `unknown`                 | The upstream error                                          |
+| `namespace` | `string \| undefined`     | Component identifier                                        |
+| `meta`      | `Record<string, unknown>` | Embedded context data                                       |
+| `tags`      | `string[]`                | Associated tags (inherited + deduplicated from cause chain) |
 
-### Function: `renderError`
+#### Methods
 
-```ts
-renderError(error: Error, options?: RenderOptions): Promise<string>
-```
+| Method     | Returns      | Description                              |
+| ---------- | ------------ | ---------------------------------------- |
+| `toJSON()` | `JsonObject` | Serialize the entire error graph to JSON |
 
-#### Render Options
+### Function: `xception()`
 
-| Option       | Type                        | Default                  | Description                 |
-| ------------ | --------------------------- | ------------------------ | --------------------------- |
-| `showSource` | `boolean`                   | `false`                  | Display source code context |
-| `showStack`  | `boolean`                   | `true`                   | Show stack trace            |
-| `filter`     | `(path: string) => boolean` | Excludes `node:internal` | Filter stack frames         |
-
-### Function: `xception`
-
-Convert any value to an Xception instance:
+Convert any value to an Xception instance, preserving the original error's message, name, and stack:
 
 ```ts
-xception(exception: unknown, options?: Options): Xception
+function xception(exception: unknown, options?: Options): Xception;
+
+type Options = {
+  namespace?: string;
+  meta?: Record<string, unknown>;
+  tags?: string[];
+  /** Custom factory for producing Xception subclasses */
+  factory?: (message: string, options: XceptionOptions) => Xception;
+};
 ```
+
+When the input is already an `Xception`, metadata is **merged** (new meta overrides existing keys) and tags are **deduplicated**. Note that `xception()` unwraps an existing Xception — the new instance's `cause` points to the original's upstream cause, not the Xception itself.
+
+### Function: `jsonify()`
+
+Recursively convert any value to a JSON-serializable structure. Handles circular references automatically with `[circular reference as <path>]` labels:
+
+```ts
+function jsonify(value: unknown): JsonValue;
+```
+
+### Function: `isErrorLike()`
+
+Type guard that checks if a value has the shape of an Error (has `message`, optional `name` and `stack`):
+
+```ts
+function isErrorLike(value: unknown): value is ErrorLike;
+
+type ErrorLike =
+  | Error
+  | {
+      message: string;
+      name?: string;
+      stack?: string;
+      [key: string | symbol]: unknown;
+    };
+```
+
+### Symbols
+
+These symbols provide direct access to Xception's protected internals. They exist so that companion packages (like [sher.log](https://github.com/alvis/sher.log)) can read Xception properties without requiring subclassing:
+
+| Symbol       | Description            |
+| ------------ | ---------------------- |
+| `$namespace` | Access error namespace |
+| `$tags`      | Access error tags      |
+| `$cause`     | Access error cause     |
+| `$meta`      | Access error metadata  |
 
 ---
 
-## 🌐 Compatibility
+## 🌐 Compatibility & Size
 
-| Platform           | Support          |
-| ------------------ | ---------------- |
-| **Node.js**        | ≥ 18.18          |
-| **Browsers**       | Modern browsers  |
-| **Chrome/Edge**    | ≥ 42             |
-| **Firefox**        | ≥ 40             |
-| **Safari**         | ≥ 10.3           |
-| **Module formats** | ESM              |
-| **Source maps**    | ✅ Auto-detected |
+| Requirement       | Value                                                                                     |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| **Node.js**       | ≥ 18.18                                                                                   |
+| **TypeScript**    | 5.x+                                                                                      |
+| **Module format** | ESM only                                                                                  |
+| **Browsers**      | Modern browsers                                                                           |
+| **Dependencies**  | [`type-fest`](https://github.com/sindresorhus/type-fest) (types only — zero runtime cost) |
+
+The package is tree-shakeable. Import only what you use — unused exports are eliminated by bundlers.
+
+---
+
+## ⚔️ Alternatives
+
+| Feature                | xception                                          | [verror](https://www.npmjs.com/package/verror) | [pretty-error](https://www.npmjs.com/package/pretty-error) | [ono](https://www.npmjs.com/package/ono) |
+| ---------------------- | ------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
+| **Error chaining**     | ✅                                                | ✅                                             | ❌                                                         | ✅                                       |
+| **Context / meta**     | ✅                                                | ❌                                             | ❌                                                         | ❌                                       |
+| **Namespace & tags**   | ✅                                                | ❌                                             | ❌                                                         | ❌                                       |
+| **JSON serialization** | ✅                                                | ❌                                             | ❌                                                         | ❌                                       |
+| **TypeScript-first**   | ✅                                                | ❌                                             | ❌                                                         | ✅                                       |
+| **Rendering**          | Via [sher.log](https://github.com/alvis/sher.log) | ❌                                             | ✅                                                         | ❌                                       |
+| **Active maintenance** | ✅                                                | ❌                                             | ❌                                                         | Limited                                  |
+
+**When to choose what:**
+
+- **xception** — When you need rich error context, chaining, and structured serialization for production logging
+- **Standard Error + cause** — When you only need basic chaining (built-in since Node 16.9)
+- **pretty-error** — When you only need prettier console output without structured data
+
+---
+
+## 🔌 Ecosystem
+
+xception is designed as a focused core with companion packages for extended functionality. The rendering layer was intentionally separated to keep the core lightweight.
+
+| Package                                           | Description                                                                            |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [**xception**](https://github.com/alvis/xception) | Context-aware error handling — metadata, chaining, serialization (this package)        |
+| [**sher.log**](https://github.com/alvis/sher.log) | Beautiful error rendering — colorized stack traces, source code display, YAML metadata |
+
+The exported symbols (`$namespace`, `$tags`, `$cause`, `$meta`) exist specifically for companion packages to access Xception's protected internals without requiring subclassing.
 
 ---
 
 ## 🏗️ Advanced Features
 
-### Source Map Support
+### Error Chain Traversal
 
-Xception automatically resolves TypeScript sources when source maps are available:
-
-```bash
-# Enable source map support
-node -r source-map-support/register app.js
-# Or in your code
-import 'source-map-support/register';
-```
-
-### Error Filtering
-
-Filter out noise from stack traces:
+Walk the full cause chain programmatically:
 
 ```ts
-const cleanError = await renderError(error, {
-  filter: (path) =>
-    !path.includes('node_modules') &&
-    !path.includes('node:internal') &&
-    !path.includes('webpack'),
+let current: unknown = error;
+while (current instanceof Xception) {
+  console.log(current.namespace, current.message);
+  current = current.cause;
+}
+```
+
+### Circular Reference Safety
+
+`jsonify()` and `toJSON()` handle circular references gracefully — no `JSON.stringify` crashes:
+
+```ts
+const meta: Record<string, unknown> = { key: 'value' };
+meta.self = meta; // circular!
+
+const error = new Xception('fail', { meta });
+console.log(error.toJSON());
+// meta.self → "[circular reference as ..self]"
+```
+
+### Tag Deduplication
+
+When chaining errors, tags are automatically merged and deduplicated:
+
+```ts
+const inner = new Xception('root cause', { tags: ['infra', 'retryable'] });
+const outer = new Xception('wrapper', {
+  cause: inner,
+  tags: ['retryable', 'critical'], // 'retryable' already exists on inner
 });
+
+console.log(outer.tags);
+// ['infra', 'retryable', 'critical'] — no duplicates
 ```
-
-### Structured Logging Integration
-
-Perfect for structured logging and monitoring:
-
-```ts
-const structuredError = {
-  level: 'error',
-  message: error.message,
-  namespace: error.namespace,
-  tags: error.tags,
-  meta: error.meta,
-  stack: error.stack,
-};
-
-logger.error(structuredError);
-```
-
----
-
-## 🆚 Alternatives
-
-| Library                                                    | Context | Chaining | Rendering | Bundle Size |
-| ---------------------------------------------------------- | ------- | -------- | --------- | ----------- |
-| **Xception**                                               | ✅      | ✅       | ✅        |
-| [verror](https://www.npmjs.com/package/verror)             | ❌      | ✅       | ❌        |
-| [pretty-error](https://www.npmjs.com/package/pretty-error) | ❌      | ❌       | ✅        |
-| [ono](https://www.npmjs.com/package/ono)                   | ❌      | ✅       | ❌        |
-
-**When to choose Xception:**
-
-- You need **context-aware** error handling
-- You want **beautiful stack traces** out of the box
-- You're building **production applications** with complex error flows
-- You need **TypeScript-first** error handling
 
 ---
 
 ## 🤝 Contributing
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
+
 1. **Fork & Clone**: `git clone https://github.com/alvis/xception.git`
 2. **Install**: `pnpm install`
-3. **Develop**: `pnpm watch` for development mode
+3. **Develop**: `pnpm test:watch` for development mode
 4. **Test**: `pnpm test && pnpm lint`
 5. **Submit**: Create a pull request
 
@@ -326,27 +456,48 @@ logger.error(structuredError);
 
 ---
 
+## 🛡️ Security
+
+Found a vulnerability? Please email [alvis@hilbert.space](mailto:alvis@hilbert.space) with details.
+We aim to respond within 48 hours and patch as quickly as possible.
+
+---
+
+## 🛠️ Troubleshooting
+
+| Issue                                     | Solution                                                                                                    |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **TypeScript errors**                     | Ensure TypeScript 5.x+ and `"moduleResolution": "bundler"` or `"node16"` in tsconfig                        |
+| **Cannot import (CJS)**                   | xception v9 is ESM-only; use dynamic `import()` in CommonJS or migrate to ESM                               |
+| **Tags not inherited**                    | Tag inheritance only works when `cause` is an `Xception` instance, not a plain `Error`                      |
+| **`toJSON()` missing properties**         | Only metadata in `meta` is serialized; use `meta` for custom data, not ad-hoc error properties              |
+| **Circular references in meta**           | `jsonify()` handles circular refs automatically with `[circular reference as <path>]`                       |
+| **`xception()` changes error class name** | `xception()` preserves the original error's `name` and `stack` — this is intentional for debugging accuracy |
+
+### ❓ FAQ
+
+**Does xception replace the native Error `cause`?**
+No. It aligns with the TC39 Error Cause proposal but adds namespace, meta, tags, and serialization on top.
+
+**Can I use xception in the browser?**
+Yes — it works in any modern JavaScript environment that supports ESM. Rendering via sher.log is Node.js focused.
+
+**Is `type-fest` a runtime dependency?**
+No. It provides TypeScript types only. There is zero runtime cost.
+
+More help: [GitHub Issues](https://github.com/alvis/xception/issues) · [Discussions](https://github.com/alvis/xception/discussions)
+
+---
+
 ## 📜 Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for version history and migration guides.
 
 ---
 
-## 🛠️ Troubleshooting
-
-| Issue                       | Solution                                                   |
-| --------------------------- | ---------------------------------------------------------- |
-| **Source code not showing** | Enable source maps: `import 'source-map-support/register'` |
-| **Stack trace too verbose** | Use `filter` option to exclude noise                       |
-| **TypeScript errors**       | Ensure TypeScript 5.x+ compatibility                       |
-
-More help: [GitHub Issues](https://github.com/alvis/xception/issues) • [Discussions](https://github.com/alvis/xception/discussions)
-
----
-
 ## 📄 License
 
-**MIT** © 2020-2025 [Alvis Tang](https://github.com/alvis)
+**MIT** © 2020-2026 [Alvis HT Tang](https://github.com/alvis)
 
 Free for personal and commercial use. See [LICENSE](LICENSE) for details.
 
@@ -354,8 +505,8 @@ Free for personal and commercial use. See [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-**[⭐ Star on GitHub](https://github.com/alvis/xception)**   •   **[📦 View on npm](https://www.npmjs.com/package/xception)**   •   **[📖 Documentation](https://github.com/alvis/xception#readme)**
+**[⭐ Star on GitHub](https://github.com/alvis/xception)** · **[📦 View on npm](https://www.npmjs.com/package/xception)** · **[📖 Documentation](https://github.com/alvis/xception#readme)**
 
-_Transform your Node.js error handling today_ 🚀
+_Built for developers who refuse to lose context when things go wrong._
 
 </div>
