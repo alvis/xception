@@ -67,16 +67,12 @@ export class Xception extends Error {
         : tags;
   }
 
-  /**
-   * get the upstream error
-   */
+  /** get the upstream error */
   public get cause(): unknown {
     return this[$cause];
   }
 
-  /**
-   * get the error namespace
-   */
+  /** get the error namespace */
   public get namespace(): string | undefined {
     return this[$namespace];
   }
@@ -88,9 +84,7 @@ export class Xception extends Error {
     return this[$meta];
   }
 
-  /**
-   * get the additional associations
-   */
+  /** get the additional associations */
   public get tags(): string[] {
     return this[$tags];
   }
