@@ -35,8 +35,12 @@ export interface XceptionOptions {
   code?: number | string;
 }
 
+const XCEPTION = Symbol.for('xception');
+
 /** a high-order error that combine previous stack and tags */
 export class Xception extends Error {
+  public [XCEPTION] = true;
+
   /** upstream error */
   protected [$cause]?: unknown;
 
@@ -121,6 +125,19 @@ export class Xception extends Error {
   /** get the machine-readable error code */
   public get code(): number | string | undefined {
     return this[$code];
+  }
+
+  /**
+   * determine whether a value should be treated as an Xception instance
+   * @param instance the value to test
+   * @returns whether the value carries the Xception marker symbol
+   */
+  public static [Symbol.hasInstance](instance: unknown): instance is Xception {
+    return (
+      typeof instance === 'object' &&
+      instance !== null &&
+      Symbol.for('xception') in instance
+    );
   }
 
   /**
