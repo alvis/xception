@@ -14,9 +14,11 @@
  */
 
 import { jsonify } from '#jsonify';
-import { $cause, $meta, $namespace, $tags } from '#symbols';
+import { $cause, $code, $meta, $namespace, $severity, $tags } from '#symbols';
 
 import type { JsonObject } from 'type-fest';
+
+export type Severity = 'fatal' | 'error' | 'warning' | 'info' | 'debug';
 
 export interface XceptionOptions {
   /** upstream error */
@@ -27,6 +29,10 @@ export interface XceptionOptions {
   meta?: Record<string, unknown>;
   /** additional associations for the error */
   tags?: string[];
+  /** error severity */
+  severity?: Severity;
+  /** machine-readable error code */
+  code?: number | string;
 }
 
 /** a high-order error that combine previous stack and tags */
@@ -43,12 +49,27 @@ export class Xception extends Error {
   /** additional associations */
   protected [$tags]: string[];
 
+  /** error severity */
+  protected [$severity]: Severity;
+
+  /** machine-readable error code */
+  protected [$code]?: number | string;
+
   /**
    * @param message error message
    * @param options additional options for the error
    */
   constructor(message: string, options?: XceptionOptions) {
-    const { namespace, cause, meta = {}, tags = [] } = { ...options };
+    const {
+      namespace,
+      cause,
+      meta = {},
+      tags = [],
+      severity,
+      code,
+    } = {
+      ...options,
+    };
 
     super(message);
 
@@ -59,6 +80,9 @@ export class Xception extends Error {
     this[$namespace] = namespace;
     this[$cause] = cause;
     this[$meta] = meta;
+    this[$severity] =
+      severity ?? (cause instanceof Xception ? cause[$severity] : 'error');
+    this[$code] = code;
 
     // attach tags
     this[$tags] =
@@ -89,12 +113,24 @@ export class Xception extends Error {
     return this[$tags];
   }
 
+  /** get the error severity */
+  public get severity(): Severity {
+    return this[$severity];
+  }
+
+  /** get the machine-readable error code */
+  public get code(): number | string | undefined {
+    return this[$code];
+  }
+
   /**
    * convert the error to a jsonifiable object
    * @returns a jsonifiable object
    */
   public toJSON(): JsonObject {
     return {
+      severity: this[$severity],
+      ...(this[$code] !== undefined ? { code: this[$code] } : {}),
       ...(this[$namespace] ? { namespace: this[$namespace] } : {}),
       name: this.name,
       message: this.message,

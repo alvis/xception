@@ -16,7 +16,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { Xception } from '#base';
-import { $cause, $meta, $namespace, $tags } from '#symbols';
+import { $cause, $code, $meta, $namespace, $severity, $tags } from '#symbols';
 
 class NewError extends Xception {
   constructor(options?: { cause?: unknown }) {
@@ -95,6 +95,40 @@ describe('cl:Xception', () => {
       expect(error[$tags]).toEqual(expectedTags);
     });
 
+    it('should default severity to error', () => {
+      const error = new Xception('message');
+
+      expect(error[$severity]).toEqual('error');
+    });
+
+    it('should store severity and code when supplied', () => {
+      const error = new Xception('message', {
+        severity: 'fatal',
+        code: 'sys:oom',
+      });
+
+      expect(error[$severity]).toEqual('fatal');
+      expect(error[$code]).toEqual('sys:oom');
+    });
+
+    it('should inherit severity from an Xception cause', () => {
+      const cause = new Xception('cause', { severity: 'warning' });
+      const error = new Xception('message', { cause });
+
+      expect(error[$severity]).toEqual('warning');
+    });
+
+    it('should not inherit code from an Xception cause', () => {
+      const cause = new Xception('cause', {
+        severity: 'warning',
+        code: 'billing:rate_limited',
+      });
+      const error = new Xception('message', { cause });
+
+      expect(error[$severity]).toEqual('warning');
+      expect(error[$code]).toBeUndefined();
+    });
+
     it('should bear the right error type', () => {
       const expectedExtendedName = 'Xception';
       const expectedNewName = 'NewError';
@@ -128,11 +162,24 @@ describe('cl:Xception', () => {
 
       expect(extendedError.tags).toEqual(expected);
     });
+
+    it('should return the severity', () => {
+      const error = new Xception('message', { severity: 'info' });
+
+      expect(error.severity).toEqual('info');
+    });
+
+    it('should return the code', () => {
+      const error = new Xception('message', { code: 'auth:token_expired' });
+
+      expect(error.code).toEqual('auth:token_expired');
+    });
   });
 
   describe('toJSON', () => {
     it('should return a jsonifiable object', () => {
       const expectedSimple = {
+        severity: 'error',
         name: 'Xception',
         message: 'message',
         meta: {},
@@ -140,6 +187,7 @@ describe('cl:Xception', () => {
         stack: expect.any(String),
       };
       const expectedExtended = {
+        severity: 'error',
         name: 'Xception',
         message: 'extended',
         meta: { name: 'xception' },
@@ -155,6 +203,23 @@ describe('cl:Xception', () => {
 
       expect(new Xception('message').toJSON()).toEqual(expectedSimple);
       expect(extendedError.toJSON()).toEqual(expectedExtended);
+    });
+
+    it('should include code when defined', () => {
+      const error = new Xception('message', {
+        severity: 'warning',
+        code: 'billing:rate_limited',
+      });
+
+      expect(error.toJSON()).toEqual({
+        severity: 'warning',
+        code: 'billing:rate_limited',
+        name: 'Xception',
+        message: 'message',
+        meta: {},
+        tags: [],
+        stack: expect.any(String),
+      });
     });
   });
 });

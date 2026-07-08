@@ -16,3 +16,5 @@ export const $namespace = Symbol('namespace');
 export const $tags = Symbol('tags');
 export const $cause = Symbol('cause');
 export const $meta = Symbol('meta');
+export const $severity = Symbol('severity');
+export const $code = Symbol('code');

@@ -15,9 +15,9 @@
 
 import { Xception } from '#base';
 import { isErrorLike } from '#isErrorLike';
-import { $meta, $namespace, $tags } from '#symbols';
+import { $meta, $namespace, $severity, $tags } from '#symbols';
 
-import type { XceptionOptions } from '#base';
+import type { Severity, XceptionOptions } from '#base';
 import type { ErrorLike } from '#isErrorLike';
 
 type Options = Omit<XceptionOptions, 'cause'> & {
@@ -45,10 +45,20 @@ export default function xception(
 
   if (isErrorLike(exception)) {
     // fetch defaults if provided in options, or use properties of the original exception
-    const { namespace, meta, tags } = computeDefaults(exception, options);
+    const { namespace, meta, tags, severity, code } = computeDefaults(
+      exception,
+      options,
+    );
 
     // create a new Xception with the original error's message and computed options
-    const error = factory(exception.message, { namespace, meta, tags, cause });
+    const error = factory(exception.message, {
+      namespace,
+      meta,
+      tags,
+      severity,
+      code,
+      cause,
+    });
 
     // replace the name and stack from the original error
     error.name = exception.name ?? error.name;
@@ -58,11 +68,11 @@ export default function xception(
   }
 
   // create a new Xception with the given message and options
-  const { namespace, meta, tags } = { ...options };
+  const { namespace, meta, tags, severity, code } = { ...options };
   // try to extract the message from the exception, otherwise use a generic message
   const message = `non-error: ${String(exception)}`;
 
-  return factory(message, { namespace, meta, tags, cause });
+  return factory(message, { namespace, meta, tags, severity, code, cause });
 }
 
 /**
@@ -78,6 +88,8 @@ function computeDefaults(
   namespace?: string;
   meta: Record<string, unknown>;
   tags: string[];
+  severity: Severity;
+  code?: number | string;
 } {
   // if a namespace is provided in options, use it, otherwise use the original exception's namespace, if any
   const namespace =
@@ -97,5 +109,14 @@ function computeDefaults(
     ]),
   ];
 
-  return { namespace, meta, tags };
+  const severity =
+    options?.severity ??
+    (exception instanceof Xception
+      ? (exception[$severity] as Severity | undefined)
+      : undefined) ??
+    'error';
+
+  const code = options?.code;
+
+  return { namespace, meta, tags, severity, code };
 }

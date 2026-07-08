@@ -20,7 +20,7 @@ export { Xception as default } from '#base';
 export { default as xception } from '#xception';
 
 // expose internals for companion packages (e.g. sher.log)
-export { $namespace, $tags, $cause, $meta } from '#symbols';
+export { $namespace, $tags, $cause, $meta, $severity, $code } from '#symbols';
 export { jsonify } from '#jsonify';
 export { isErrorLike } from '#isErrorLike';
 export type { ErrorLike } from '#isErrorLike';

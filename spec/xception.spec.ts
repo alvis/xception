@@ -17,7 +17,7 @@ import { describe, expect, it } from 'vitest';
 
 import { Xception } from '#base';
 
-import { $meta } from '#symbols';
+import { $code, $meta, $severity } from '#symbols';
 import xception from '#xception';
 
 describe('fn:xceptionalize', () => {
@@ -34,6 +34,8 @@ describe('fn:xceptionalize', () => {
     expect(result.message).toEqual(expectedMessage);
     expect(result.stack).toBeDefined();
     expect(result[$meta]).toEqual(expectedMeta);
+    expect(result[$severity]).toEqual('error');
+    expect(result[$code]).toBeUndefined();
   });
 
   it('should wrap an error as an Xception', () => {
@@ -52,6 +54,8 @@ describe('fn:xceptionalize', () => {
       expect(result.stack).toEqual(error.stack);
       expect(result[$meta]).toEqual(expectedMeta);
       expect(result.cause).toEqual(error);
+      expect(result[$severity]).toEqual('error');
+      expect(result[$code]).toBeUndefined();
     }
   });
 
@@ -69,6 +73,21 @@ describe('fn:xceptionalize', () => {
     expect(result.message).toEqual(expectedMessage);
     expect(result[$meta]).toEqual(expectedMeta);
     expect(result.cause).toEqual(expectedCause);
+    expect(result[$severity]).toEqual('error');
+    expect(result[$code]).toBeUndefined();
+  });
+
+  it('should not inherit severity or code from a non-Xception error-like object', () => {
+    const input = {
+      message: 'test',
+      [$severity]: 'fatal',
+      [$code]: 'billing:rate_limited',
+    };
+
+    const result = xception(input);
+
+    expect(result.severity).toEqual('error');
+    expect(result.code).toBeUndefined();
   });
 
   it('should ignore any xception instance', () => {
@@ -92,6 +111,8 @@ describe('fn:xceptionalize', () => {
 
     expect(result.message).toEqual(expectedMessage);
     expect(result.cause).toEqual(expectedCause);
+    expect(result[$severity]).toEqual('error');
+    expect(result[$code]).toBeUndefined();
   });
 
   it('should change the namespace of an Xception', () => {
@@ -127,5 +148,53 @@ describe('fn:xceptionalize', () => {
     const result = xception(original, { tags: ['new', 'bar'] });
 
     expect(result.tags).toEqual(expectedTags);
+  });
+
+  it('should inherit severity when wrapping an Xception', () => {
+    const original = new Xception('message', { severity: 'warning' });
+
+    const result = xception(original);
+
+    expect(result.severity).toEqual('warning');
+  });
+
+  it('should override inherited severity when explicitly supplied', () => {
+    const original = new Xception('message', { severity: 'fatal' });
+
+    const result = xception(original, { severity: 'info' });
+
+    expect(result.severity).toEqual('info');
+  });
+
+  it('should not inherit code when wrapping an Xception', () => {
+    const original = new Xception('message', {
+      severity: 'warning',
+      code: 'auth:token_expired',
+    });
+
+    const result = xception(original);
+
+    expect(result.code).toBeUndefined();
+  });
+
+  it('should apply code when explicitly supplied', () => {
+    const original = new Xception('message', { code: 'auth:token_expired' });
+
+    const result = xception(original, { code: 'api:request_failed' });
+
+    expect(result.code).toEqual('api:request_failed');
+  });
+
+  it('should pass severity and code to the factory', () => {
+    const original = new Error('test');
+
+    const result = xception(original, {
+      severity: 'fatal',
+      code: 503,
+      factory: (message, options) => new Xception(message, options),
+    });
+
+    expect(result.severity).toEqual('fatal');
+    expect(result.code).toEqual(503);
   });
 });
