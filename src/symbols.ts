@@ -18,3 +18,4 @@ export const $cause = Symbol('cause');
 export const $meta = Symbol('meta');
 export const $severity = Symbol('severity');
 export const $code = Symbol('code');
+export const $brands = Symbol('xception.brands');

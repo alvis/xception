@@ -193,6 +193,40 @@ try {
 }
 ```
 
+### Factory-Generated Error Classes
+
+Use `createXceptionClass()` when you want typed subclasses with class-level defaults and `instanceof` support across duplicated package installations:
+
+```ts
+import { Xception, createXceptionClass } from 'xception';
+
+const NotFoundError = createXceptionClass<{ resource: string }>(
+  'NotFoundError',
+  {
+    code: 'app:not_found',
+    severity: 'warning',
+  },
+);
+
+const UserNotFoundError = createXceptionClass<{ userId: string }>(
+  'UserNotFoundError',
+  {
+    base: NotFoundError,
+    code: 'app:user_not_found',
+  },
+);
+
+const error = new UserNotFoundError('User not found', {
+  meta: { userId: '42' },
+});
+
+console.log(error instanceof Xception); // true
+console.log(error instanceof NotFoundError); // true
+console.log(error instanceof UserNotFoundError); // true
+console.log(error.severity); // 'warning'
+console.log(error.code); // 'app:user_not_found'
+```
+
 ### Tag Inheritance
 
 Tags automatically propagate and deduplicate through cause chains:
@@ -293,17 +327,19 @@ function errorMiddleware(
 ### Class: `Xception`
 
 ```ts
-new Xception(message: string, options?: XceptionOptions)
+new Xception<Meta>(message: string, options?: XceptionOptions<Meta>)
 ```
 
 ```ts
-interface XceptionOptions {
+interface XceptionOptions<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+> {
   /** Upstream error to be embedded */
   cause?: unknown;
   /** Error namespace (e.g., 'app:database') */
   namespace?: string;
   /** Context data for debugging */
-  meta?: Record<string, unknown>;
+  meta?: Meta;
   /** Additional associations for filtering */
   tags?: string[];
   /** Severity for routing and alerting */
@@ -329,6 +365,36 @@ interface XceptionOptions {
 | Method     | Returns      | Description                              |
 | ---------- | ------------ | ---------------------------------------- |
 | `toJSON()` | `JsonObject` | Serialize the entire error graph to JSON |
+
+### Function: `createXceptionClass()`
+
+Create a branded `Xception` subclass with cascading defaults and cross-package `instanceof` support:
+
+```ts
+function createXceptionClass<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+>(
+  name: string,
+  options?: CreateXceptionClassOptions<Meta>,
+): XceptionConstructor<Meta> & {
+  readonly brand: symbol;
+};
+
+type XceptionConstructor<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+> = new (
+  message: string,
+  options?: XceptionOptions<Meta>,
+) => Xception<Meta>;
+
+interface CreateXceptionClassOptions<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+> extends XceptionOptions<Meta> {
+  base?: XceptionConstructor<any>;
+}
+```
+
+Class-level `options` become defaults for each instance. Subclasses created with `base` inherit their parent defaults unless they override them, and per-instance options always win. `meta` is replaced rather than deep-merged so each class keeps a clear typed metadata contract.
 
 ### Function: `xception()`
 

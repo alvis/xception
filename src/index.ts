@@ -17,7 +17,10 @@
 
 export * from '#base';
 export { Xception as default } from '#base';
+export { createXceptionClass } from '#class';
 export { default as xception } from '#xception';
+
+export type { CreateXceptionClassOptions, XceptionConstructor } from '#class';
 
 // expose internals for companion packages (e.g. sher.log)
 export { $namespace, $tags, $cause, $meta, $severity, $code } from '#symbols';

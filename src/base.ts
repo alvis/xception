@@ -14,7 +14,15 @@
  */
 
 import { jsonify } from '#jsonify';
-import { $cause, $code, $meta, $namespace, $severity, $tags } from '#symbols';
+import {
+  $brands,
+  $cause,
+  $code,
+  $meta,
+  $namespace,
+  $severity,
+  $tags,
+} from '#symbols';
 
 import type { JsonObject } from 'type-fest';
 
@@ -140,6 +148,14 @@ export class Xception<
       instance !== null &&
       Symbol.for('xception') in instance
     );
+  }
+
+  /**
+   * collect all runtime brands attached to this error
+   * @returns the internal brand chain for this instance
+   */
+  public [$brands](): string[] {
+    return [Symbol.keyFor(XCEPTION) ?? 'xception'];
   }
 
   /**
