@@ -11,7 +11,7 @@
 
 **Handle exceptions smart** — context-preserving, chainable, serializable errors for TypeScript.
 
-_Lightweight error handling with metadata embedding, namespace categorization, tag inheritance, and JSON serialization._
+_Lightweight error handling with metadata embedding, namespace categorization, tag inheritance, and JSON round-tripping._
 
 </div>
 
@@ -98,7 +98,7 @@ Xception preserves everything:
 
 - **🎯 Context preserved**: Attach `meta` with runtime state at the point of failure
 - **🔗 Chains maintained**: `cause` property links errors into full causality chains (TC39 aligned)
-- **📊 JSON-ready**: `toJSON()` serializes the entire error graph for structured logging
+- **📊 JSON-ready**: `toJSON()` and `fromJSON()` round-trip error graphs for structured logging and replay
 - **🏷️ Categorized**: `namespace` and `tags` let you filter, route, and aggregate errors
 - **🚦 Routable**: `severity` and `code` support machine-readable handling, alerting, and i18n
 - **📦 Lightweight**: Minimal footprint with a single types-only dependency
@@ -320,6 +320,29 @@ function errorMiddleware(
 }
 ```
 
+### Rehydrating Serialized Errors
+
+Reconstruct structured payloads from other services or log replays back into live `Xception` instances:
+
+```ts
+import { Xception, createXceptionClass } from 'xception';
+
+const AuthError = createXceptionClass('AuthError', {
+  namespace: 'auth',
+});
+
+const revived = Xception.fromJSON(payload, {
+  reviver: (json, defaults) =>
+    json.name === 'AuthError'
+      ? new AuthError(json.message as string, defaults)
+      : undefined,
+});
+
+console.log(revived instanceof Xception); // true
+console.log(revived instanceof AuthError); // true when revived by the reviver
+console.log(revived.cause); // recursively reconstructed
+```
+
 ---
 
 ## 🔧 API Reference
@@ -365,6 +388,41 @@ interface XceptionOptions<
 | Method     | Returns      | Description                              |
 | ---------- | ------------ | ---------------------------------------- |
 | `toJSON()` | `JsonObject` | Serialize the entire error graph to JSON |
+
+#### Static Methods
+
+| Method                         | Returns    | Description                               |
+| ------------------------------ | ---------- | ----------------------------------------- |
+| `fromJSON(json, options?)`     | `Xception` | Rehydrate a serialized error graph to runtime instances |
+
+```ts
+interface FromJSONOptions {
+  /** Custom factory for producing subclasses */
+  reviver?: (
+    json: JsonObject,
+    defaults: XceptionOptions,
+  ) => Xception | undefined;
+  /** Max cause chain depth (default: 50) */
+  maxDepth?: number;
+}
+```
+
+`Xception.fromJSON()` expects a non-null object with a string `message`. Missing or invalid optional fields fall back to sensible defaults:
+
+- `name` defaults to `'Xception'`
+- `meta` defaults to `{}`
+- `tags` defaults to `[]`
+- `severity` defaults to `'error'`
+- `code` defaults to `undefined`
+
+Cause reconstruction rules:
+
+- object `cause` values are recursively deserialized as `Xception`
+- string `cause` values become `new Error(cause)`
+- missing, `null`, or unsupported cause shapes are dropped
+- recursive deserialization is truncated after `maxDepth` levels
+
+When a `reviver` is provided, it is called cause-first for every object in the chain. Return a subclass instance to preserve domain-specific `instanceof` checks, or return `undefined` to fall back to the base `Xception` constructor.
 
 ### Function: `createXceptionClass()`
 

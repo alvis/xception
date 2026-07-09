@@ -13,6 +13,16 @@
  * -------------------------------------------------------------------------
  */
 
+import {
+  assertSerializedError,
+  isJsonObject,
+  normalizeMaxDepth,
+  readCode,
+  readMeta,
+  readOptionalString,
+  readSeverity,
+  readTags,
+} from '#fromJson';
 import { jsonify } from '#jsonify';
 import {
   $brands,
@@ -43,6 +53,16 @@ export interface XceptionOptions<
   severity?: Severity;
   /** machine-readable error code */
   code?: number | string;
+}
+
+export interface FromJSONOptions {
+  /** custom factory for producing subclasses */
+  reviver?: (
+    json: JsonObject,
+    defaults: XceptionOptions,
+  ) => Xception | undefined;
+  /** max cause chain depth */
+  maxDepth?: number;
 }
 
 const XCEPTION = Symbol.for('xception');
@@ -151,6 +171,19 @@ export class Xception<
   }
 
   /**
+   * reconstruct an Xception instance from a serialized json object
+   * @param json the serialized error payload
+   * @param options reviver and recursion controls
+   * @returns the reconstructed error
+   */
+  public static fromJSON(
+    json: JsonObject,
+    options?: FromJSONOptions,
+  ): Xception {
+    return fromJson(json, options);
+  }
+
+  /**
    * collect all runtime brands attached to this error
    * @returns the internal brand chain for this instance
    */
@@ -175,4 +208,58 @@ export class Xception<
       tags: this[$tags],
     };
   }
+}
+
+/**
+ * reconstruct a serialized error object and its cause chain
+ * @param json the serialized error payload for the current level
+ * @param options reviver and recursion controls
+ * @param depth the current cause-chain depth from the root
+ * @returns the reconstructed Xception instance
+ */
+function fromJson(
+  json: JsonObject,
+  options: FromJSONOptions | undefined,
+  depth = 0,
+): Xception {
+  assertSerializedError(json);
+
+  const maxDepth = normalizeMaxDepth(options?.maxDepth);
+  const rawCause = 'cause' in json ? json.cause : undefined;
+  const cause =
+    rawCause === null || rawCause === undefined
+      ? undefined
+      : typeof rawCause === 'string'
+        ? new Error(rawCause)
+        : !isJsonObject(rawCause)
+          ? undefined
+          : depth >= maxDepth
+            ? undefined
+            : fromJson(rawCause, options, depth + 1);
+  const defaults: XceptionOptions = {
+    cause,
+    namespace: readOptionalString(json.namespace),
+    meta: readMeta(json.meta),
+    tags: readTags(json.tags),
+    severity: readSeverity(json.severity),
+    code: readCode(json.code),
+  };
+  const revived =
+    options?.reviver?.(json, defaults) ?? new Xception(json.message, defaults);
+
+  if (!(revived instanceof Xception)) {
+    throw new TypeError(
+      'Xception.fromJSON reviver must return an Xception instance or undefined',
+    );
+  }
+
+  revived.name = readOptionalString(json.name) ?? 'Xception';
+
+  const stack = readOptionalString(json.stack);
+
+  if (stack !== undefined) {
+    revived.stack = stack;
+  }
+
+  return revived;
 }
