@@ -20,13 +20,15 @@ import type { JsonObject } from 'type-fest';
 
 export type Severity = 'fatal' | 'error' | 'warning' | 'info' | 'debug';
 
-export interface XceptionOptions {
+export interface XceptionOptions<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+> {
   /** upstream error */
   cause?: unknown;
   /** error namespace */
   namespace?: string;
   /** context where the error occur */
-  meta?: Record<string, unknown>;
+  meta?: Meta;
   /** additional associations for the error */
   tags?: string[];
   /** error severity */
@@ -38,7 +40,9 @@ export interface XceptionOptions {
 const XCEPTION = Symbol.for('xception');
 
 /** a high-order error that combine previous stack and tags */
-export class Xception extends Error {
+export class Xception<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+> extends Error {
   public [XCEPTION] = true;
 
   /** upstream error */
@@ -48,7 +52,7 @@ export class Xception extends Error {
   protected [$namespace]?: string;
 
   /** running context */
-  protected [$meta]: Record<string, unknown>;
+  protected [$meta]: Meta;
 
   /** additional associations */
   protected [$tags]: string[];
@@ -63,11 +67,11 @@ export class Xception extends Error {
    * @param message error message
    * @param options additional options for the error
    */
-  constructor(message: string, options?: XceptionOptions) {
+  constructor(message: string, options?: XceptionOptions<Meta>) {
     const {
       namespace,
       cause,
-      meta = {},
+      meta = {} as Meta,
       tags = [],
       severity,
       code,
@@ -105,10 +109,8 @@ export class Xception extends Error {
     return this[$namespace];
   }
 
-  /**
-   * get the running context
-   */
-  public get meta(): Record<string, unknown> {
+  /** get the running context */
+  public get meta(): Meta {
     return this[$meta];
   }
 

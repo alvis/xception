@@ -20,9 +20,13 @@ import { $meta, $namespace, $severity, $tags } from '#symbols';
 import type { Severity, XceptionOptions } from '#base';
 import type { ErrorLike } from '#isErrorLike';
 
-type Options = Omit<XceptionOptions, 'cause'> & {
-  factory?: (message: string, options: XceptionOptions) => Xception;
-};
+type Options<Meta extends Record<string, unknown> = Record<string, unknown>> =
+  Omit<XceptionOptions<Meta>, 'cause'> & {
+    factory?: (
+      message: string,
+      options: XceptionOptions<Meta>,
+    ) => Xception<Meta>;
+  };
 
 /**
  * convert an error to an Xception instance with metadata merged while preserving the original error message and stack
@@ -31,17 +35,19 @@ type Options = Omit<XceptionOptions, 'cause'> & {
  * @param options.meta meta data to be embedded in the error
  * @returns the transformed error
  */
-export default function xception(
+export default function xception<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+>(
   exception: unknown, // string, error, Xception, { message: string, ...}
-  options?: Options,
-): Xception {
+  options?: Options<Meta>,
+): Xception<Meta> {
   const cause = exception instanceof Xception ? exception.cause : exception;
 
   // when options.factory is provided, it's used to create Xception instances; otherwise, the default constructor is used
   const factory =
     options?.factory ??
-    ((message: string, options?: XceptionOptions) =>
-      new Xception(message, options));
+    ((message: string, options?: XceptionOptions<Meta>) =>
+      new Xception<Meta>(message, options));
 
   if (isErrorLike(exception)) {
     // fetch defaults if provided in options, or use properties of the original exception
@@ -69,6 +75,7 @@ export default function xception(
 
   // create a new Xception with the given message and options
   const { namespace, meta, tags, severity, code } = { ...options };
+
   // try to extract the message from the exception, otherwise use a generic message
   const message = `non-error: ${String(exception)}`;
 
@@ -81,12 +88,14 @@ export default function xception(
  * @param options additional options provided for generating the `Xception` instance
  * @returns an object containing computed namespace, meta, and tags to be used for the new `Xception`
  */
-function computeDefaults(
+function computeDefaults<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+>(
   exception: ErrorLike,
-  options?: Options,
+  options?: Options<Meta>,
 ): {
   namespace?: string;
-  meta: Record<string, unknown>;
+  meta: Meta;
   tags: string[];
   severity: Severity;
   code?: number | string;
@@ -97,7 +106,7 @@ function computeDefaults(
 
   // merge metadata from the original exception and options
   const meta = {
-    ...(exception[$meta] as Record<string, unknown>),
+    ...(exception[$meta] as Meta),
     ...options?.meta,
   };
 
