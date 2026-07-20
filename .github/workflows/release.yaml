@@ -12,25 +12,28 @@ jobs:
       id-token: write
     steps:
       - name: checkout
-        uses: actions/checkout@v4
-      - name: enable corepack
-        run: corepack enable
-      - name: use node LTS
-        uses: actions/setup-node@v4
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: install pnpm
+        uses: pnpm/action-setup@v6
+      - name: use node lts
+        uses: actions/setup-node@v6
         with:
           node-version: lts/*
-          cache: pnpm
+          registry-url: https://registry.npmjs.org
       - name: install dependencies
         run: pnpm install
-      - name: create release notes
-        run: npx gh-release@7 --yes
+      - name: publish GitHub release
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "GitHub release $GITHUB_REF_NAME already exists"
+          else
+            release_notes_file="$RUNNER_TEMP/release-notes.md"
+            npx run release:notes -- --output "$release_notes_file"
+            gh release create "$GITHUB_REF_NAME" --verify-tag --notes-file "$release_notes_file"
+          fi
         env:
-          GH_RELEASE_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: login to npm
-        run: pnpm config set //registry.npmjs.org/:_authToken $NPM_AUTH_TOKEN
-        env:
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: release to npm
-        run: pnpm publish --no-git-checks
-        env:
-          NPM_CONFIG_PROVENANCE: true
+        run: pnpm publish --access public --provenance --no-git-checks
