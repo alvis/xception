@@ -48,24 +48,27 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "run build",
-    "coverage": "run coverage --",
     "lint": "run lint --",
     "prepare": "run prepare",
     "prepublishOnly": "run prepublishOnly",
     "release": "run release --",
     "test": "run test --",
-    "watch": "run watch --"
+    "test:coverage": "run test:coverage --",
+    "test:watch": "run test:watch --"
   },
   "dependencies": {
     "type-fest": "^4.23.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
-    "presetter": "^8.0.0",
-    "presetter-preset-esm": "^8.0.0",
-    "presetter-preset-strict": "^8.0.0"
+    "@presetter/preset-esm": "^9.0.0",
+    "@presetter/preset-strict": "^9.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
+    "presetter": "^9.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.0"
   },
-  "packageManager": "pnpm@10.14.0",
+  "packageManager": "pnpm@11.14.0",
   "engines": {
     "node": ">=22"
   },
