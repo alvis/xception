@@ -67,7 +67,7 @@
   },
   "packageManager": "pnpm@10.14.0",
   "engines": {
-    "node": ">=18.18"
+    "node": ">=22"
   },
   "publishConfig": {
     "imports": {
