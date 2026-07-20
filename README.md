@@ -5,7 +5,7 @@
 # xception
 
 [![npm](https://img.shields.io/npm/dm/xception?style=flat-square)](https://www.npmjs.com/package/xception)
-[![build](https://img.shields.io/github/actions/workflow/status/alvis/xception/test.yaml?style=flat-square)](https://github.com/alvis/xception/actions)
+[![build](https://img.shields.io/github/actions/workflow/status/alvis/xception/main.yaml?branch=master&style=flat-square)](https://github.com/alvis/xception/actions/workflows/main.yaml)
 [![dependencies](https://img.shields.io/librariesio/release/npm/xception?style=flat-square)](https://libraries.io/npm/xception)
 [![license](https://img.shields.io/github/license/alvis/xception.svg?style=flat-square)](https://github.com/alvis/xception/blob/master/LICENSE)
 
@@ -34,7 +34,6 @@ yarn add xception
 import { Xception } from 'xception';
 
 throw new Xception('Payment failed', {
-  cause: originalError,
   severity: 'error',
   code: 'billing:payment_failed',
   namespace: 'billing',
@@ -47,7 +46,7 @@ throw new Xception('Payment failed', {
 
 ```ts
 class DatabaseError extends Xception {
-  constructor(query: string, cause: Error) {
+  constructor(query: string, cause: unknown) {
     super('Database query failed', {
       cause,
       severity: 'error',
@@ -153,11 +152,16 @@ try {
 ### Custom Error Hierarchies
 
 ```ts
-// Build a hierarchy for your domain
-class AppError extends Xception {}
+// Build a typed hierarchy for your domain
+class AppError<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+> extends Xception<Meta> {}
 
-class DatabaseError extends AppError {
-  constructor(query: string, cause: Error) {
+class DatabaseError extends AppError<{
+  query: string;
+  retryable: boolean;
+}> {
+  constructor(query: string, cause: unknown) {
     super('Database query failed', {
       cause,
       severity: 'error',
@@ -169,7 +173,11 @@ class DatabaseError extends AppError {
   }
 }
 
-class ValidationError extends AppError {
+class ValidationError extends AppError<{
+  field: string;
+  value: unknown;
+  timestamp: number;
+}> {
   constructor(field: string, value: unknown) {
     super(`Validation failed for field: ${field}`, {
       namespace: 'validation',
@@ -289,6 +297,7 @@ Use the `factory` option to produce your own Xception subclass from `xception()`
 ```ts
 class HttpError extends Xception {}
 
+const originalError = new Error('Request failed');
 const error = xception(originalError, {
   namespace: 'http',
   factory: (message, options) => new HttpError(message, options),
@@ -331,6 +340,7 @@ const AuthError = createXceptionClass('AuthError', {
   namespace: 'auth',
 });
 
+const payload = new AuthError('Authentication failed').toJSON();
 const revived = Xception.fromJSON(payload, {
   reviver: (json, defaults) =>
     json.name === 'AuthError'
@@ -378,7 +388,7 @@ interface XceptionOptions<
 | ----------- | ------------------------------- | ----------------------------------------------------------- |
 | `cause`     | `unknown`                       | The upstream error                                          |
 | `namespace` | `string \| undefined`           | Component identifier                                        |
-| `meta`      | `Record<string, unknown>`       | Embedded context data                                       |
+| `meta`      | `Meta`                          | Embedded context data                                       |
 | `tags`      | `string[]`                      | Associated tags (inherited + deduplicated from cause chain) |
 | `severity`  | `Severity`                      | Alerting and routing level                                  |
 | `code`      | `number \| string \| undefined` | Machine-readable error identifier                           |
@@ -424,6 +434,8 @@ Cause reconstruction rules:
 
 When a `reviver` is provided, it is called cause-first for every object in the chain. Return a subclass instance to preserve domain-specific `instanceof` checks, or return `undefined` to fall back to the base `Xception` constructor.
 
+`Xception.fromJSON()` throws `TypeError` when the root or a nested object does not contain a string `message`, or when a reviver returns a value that is not an `Xception`.
+
 ### Function: `createXceptionClass()`
 
 Create a branded `Xception` subclass with cascading defaults and cross-package `instanceof` support:
@@ -459,16 +471,21 @@ Class-level `options` become defaults for each instance. Subclasses created with
 Convert any value to an Xception instance, preserving the original error's message, name, and stack:
 
 ```ts
-function xception(exception: unknown, options?: Options): Xception;
+function xception<
+  Meta extends Record<string, unknown> = Record<string, unknown>,
+>(exception: unknown, options?: Options<Meta>): Xception<Meta>;
 
-type Options = {
+type Options<Meta extends Record<string, unknown>> = {
   namespace?: string;
-  meta?: Record<string, unknown>;
+  meta?: Meta;
   tags?: string[];
   severity?: 'fatal' | 'error' | 'warning' | 'info' | 'debug';
   code?: number | string;
   /** Custom factory for producing Xception subclasses */
-  factory?: (message: string, options: XceptionOptions) => Xception;
+  factory?: (
+    message: string,
+    options: XceptionOptions<Meta>,
+  ) => Xception<Meta>;
 };
 ```
 
@@ -585,7 +602,7 @@ meta.self = meta; // circular!
 
 const error = new Xception('fail', { meta });
 console.log(error.toJSON());
-// meta.self → "[circular reference as ..self]"
+// meta.self → "[circular reference as .]"
 ```
 
 ### Tag Deduplication
