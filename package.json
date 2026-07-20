@@ -57,12 +57,12 @@
     "test:watch": "run test:watch --"
   },
   "dependencies": {
-    "type-fest": "^4.23.0"
+    "type-fest": "^5.8.0"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
     "@presetter/preset-esm": "^9.0.0",
     "@presetter/preset-strict": "^9.0.0",
+    "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^4.0.0",
     "presetter": "^9.0.0",
     "typescript": "^5.9.0",
