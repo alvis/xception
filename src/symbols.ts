@@ -12,10 +12,13 @@
  * -------------------------------------------------------------------------
  */
 
-export const $namespace = Symbol('namespace');
-export const $tags = Symbol('tags');
-export const $cause = Symbol('cause');
-export const $meta = Symbol('meta');
-export const $severity = Symbol('severity');
-export const $code = Symbol('code');
-export const $brands = Symbol('xception.brands');
+// NOTE: every key is registry-global so that an instance created by one copy of
+// this module (e.g. a second bundled copy in the same process) keeps its state
+// readable by another copy, which a module-local Symbol() would hide
+export const $namespace: unique symbol = Symbol.for('xception.namespace');
+export const $tags: unique symbol = Symbol.for('xception.tags');
+export const $cause: unique symbol = Symbol.for('xception.cause');
+export const $meta: unique symbol = Symbol.for('xception.meta');
+export const $severity: unique symbol = Symbol.for('xception.severity');
+export const $code: unique symbol = Symbol.for('xception.code');
+export const $brands: unique symbol = Symbol.for('xception.brands');
