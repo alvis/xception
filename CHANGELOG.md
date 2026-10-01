@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+# 9.1.0 (2026-10-01)
+
+
+### ✨ Features
+
+* share state symbols across module copies (#1) (349ae1a)
 # 9.0.0 (2026-07-20)
 
 
